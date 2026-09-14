@@ -1,6 +1,7 @@
 #include "synth/SynthVoice.h"
 #include "synth/SynthSound.h"
 #include "dsp/Wavetable.h"
+#include "dsp/Envelope.h"
 
 SynthVoice::SynthVoice (const Wavetable& table)
     : osc_ (table)
@@ -18,20 +19,27 @@ void SynthVoice::startNote (int midiNoteNumber, float velocity,
     (void) sound;
     (void) currentPitchWheelPosition;
 
-    osc_.reset();
     float frequency = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber));
     osc_.setFrequency(frequency);
+    osc_.reset();
     level_ = velocity * 0.15f;
+    envelope_.noteOn();
 }
 
 void SynthVoice::stopNote (float velocity, bool allowTailOff)
 {
     (void) velocity;
-    (void) allowTailOff;
-    
-    clearCurrentNote();
-    level_ = 0.0f;
-    osc_.reset();
+
+    if (allowTailOff)
+        envelope_.noteOff();
+
+    else
+    {
+        envelope_.reset();
+        clearCurrentNote();
+        level_ = 0.0f;
+        osc_.reset();
+    }
 }
 
 void SynthVoice::pitchWheelMoved (int) {}
@@ -39,24 +47,30 @@ void SynthVoice::controllerMoved (int, int) {}
 
 void SynthVoice::setCurrentPlaybackSampleRate (double newRate)
 {
-    SynthesiserVoice::setCurrentPlaybackSampleRate(newRate);
-    osc_.setSampleRate(static_cast<float>(newRate));
+    juce::SynthesiserVoice::setCurrentPlaybackSampleRate (newRate);
+    osc_.setSampleRate (static_cast<float> (newRate));
+    envelope_.setSampleRate (newRate);
 }
 
 void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer,
                                   int startSample, int numSamples)
 {
-    if (level_ == 0.0f) return;
+    if (! envelope_.isActive())
+        return;
 
     for (int i = 0; i < numSamples; ++i)
     {
-        float sample = osc_.process() * level_;
-        
-        int chs = outputBuffer.getNumChannels();
-        for (int ch = 0; ch < chs; ++ch)
+        const float env = envelope_.getNextSample();
+        const float sample = osc_.process() * level_ * env;
+
+        for (int ch = 0; ch < outputBuffer.getNumChannels(); ++ch)
+            outputBuffer.addSample (ch, startSample + i, sample);
+
+        if (! envelope_.isActive())
         {
-            outputBuffer.addSample(ch, startSample + i, sample);
+            clearCurrentNote();
+            level_ = 0.0f;
+            break;
         }
     }
-
 }

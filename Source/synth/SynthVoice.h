@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/WavetableOsc.h"
+#include "dsp/Envelope.h"
 #include <juce_audio_basics/juce_audio_basics.h>
 
 class Wavetable;
@@ -24,5 +25,6 @@ public:
 
 private:
     WavetableOsc osc_;
+    Envelope envelope_;
     float level_ = 0.0f;
 };

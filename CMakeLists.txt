@@ -37,6 +37,7 @@ target_sources(WavetableSynth
         Source/constants.h
         Source/dsp/Wavetable.cpp
         Source/dsp/WavetableOsc.cpp
+        Source/dsp/Envelope.cpp
         Source/synth/SynthSound.h
         Source/synth/SynthVoice.cpp)
 

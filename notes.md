@@ -9,6 +9,8 @@
 ## September 13, 2026
 
 - Connected JUCE Synthesizer API - made it polyphonic
+- Added ADSR
+- TODO: Make ADSR customizable and add GUI
 
 ## September 11, 2026
 
