@@ -34,8 +34,11 @@ target_sources(WavetableSynth
     PRIVATE
         Source/PluginProcessor.cpp
         Source/PluginEditor.cpp
+        Source/constants.h
         Source/dsp/Wavetable.cpp
-        Source/dsp/WavetableOsc.cpp)
+        Source/dsp/WavetableOsc.cpp
+        Source/synth/SynthSound.h
+        Source/synth/SynthVoice.cpp)
 
 target_include_directories(WavetableSynth
     PRIVATE

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "dsp/Wavetable.h"
-#include "dsp/WavetableOsc.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -40,8 +39,7 @@ public:
 
 private:
     Wavetable wavetable_;
-    WavetableOsc osc_;
-    bool noteOn_ = false;
+    juce::Synthesiser synth_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessor)
 };

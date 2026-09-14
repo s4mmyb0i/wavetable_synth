@@ -1,11 +1,18 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "constants.h"
+#include "synth/SynthSound.h"
+#include "synth/SynthVoice.h"
 
 WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
     : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-      wavetable_ (Wavetable::sine()),
-      osc_ (wavetable_)
+    wavetable_ (Wavetable::sine())
 {
+    for (int voice = 0; voice < NUM_VOICES; ++voice)
+    {
+        synth_.addVoice(new SynthVoice(wavetable_));
+    }
+    synth_.addSound(new SynthSound());
 }
 
 WavetableSynthAudioProcessor::~WavetableSynthAudioProcessor() = default;
@@ -43,8 +50,7 @@ void WavetableSynthAudioProcessor::changeProgramName (int index, const juce::Str
 void WavetableSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     juce::ignoreUnused (samplesPerBlock);
-    juce::ignoreUnused (sampleRate);
-    osc_.setSampleRate(static_cast<float>(sampleRate));
+    synth_.setCurrentPlaybackSampleRate(sampleRate);
 }
 
 void WavetableSynthAudioProcessor::releaseResources() {}
@@ -61,33 +67,7 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 {
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
-
-    for (const auto metadata : midiMessages)
-    {
-        const auto msg = metadata.getMessage();
-        if (msg.isNoteOn())
-        {
-            noteOn_ = true;
-            osc_.reset();
-            osc_.setFrequency ((float) msg.getMidiNoteInHertz(msg.getNoteNumber()));
-            // or: juce::MidiMessage::getMidiNoteInHertz (msg.getNoteNumber())
-        }
-        else if (msg.isNoteOff())
-        {
-            noteOn_ = false;
-        }
-    }
-
-    float value;
-    for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-    {
-        if (noteOn_) value = static_cast<float>(osc_.process() * 0.2);
-        else value = 0;
-        
-        for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
-            buffer.setSample(ch, sample, static_cast<float>(value));
-    }
-
+    synth_.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
 bool WavetableSynthAudioProcessor::hasEditor() const { return true; }
