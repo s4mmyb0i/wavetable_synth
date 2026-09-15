@@ -3,11 +3,15 @@
 #include "constants.h"
 #include "synth/SynthSound.h"
 #include "synth/SynthVoice.h"
+#include "params/ParameterLayout.h"
+#include "params/ParamIDs.h"
 
 WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
     : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-    wavetable_ (Wavetable::sine())
+    wavetable_ (Wavetable::sine()),
+    apvts_ (*this, nullptr, "PARAMS", createParameterLayout())
 {
+    
     for (int voice = 0; voice < NUM_VOICES; ++voice)
     {
         synth_.addVoice(new SynthVoice(wavetable_));
@@ -67,6 +71,17 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 {
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
+
+    Envelope::Parameters envParams;
+    envParams.attackSeconds     = apvts_.getRawParameterValue(ParamIDs::attack)->load();
+    envParams.decaySeconds      = apvts_.getRawParameterValue(ParamIDs::decay)->load();
+    envParams.sustainLevel      = apvts_.getRawParameterValue(ParamIDs::sustain)->load();
+    envParams.releaseSeconds    = apvts_.getRawParameterValue(ParamIDs::release)->load();
+
+    for (int i = 0; i < synth_.getNumVoices(); ++i)
+        if (SynthVoice* voice = dynamic_cast<SynthVoice*> (synth_.getVoice (i)))
+            voice->setEnvelopeParameters(envParams);
+
     synth_.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
@@ -79,12 +94,17 @@ juce::AudioProcessorEditor* WavetableSynthAudioProcessor::createEditor()
 
 void WavetableSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    juce::ignoreUnused (destData);
+    if (auto xml = apvts_.copyState().createXml())
+        copyXmlToBinary (*xml, destData);
 }
 
 void WavetableSynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     juce::ignoreUnused (data, sizeInBytes);
+
+    if (auto xml = getXmlFromBinary (data, sizeInBytes))
+        if (xml->hasTagName (apvts_.state.getType()))
+            apvts_.replaceState (juce::ValueTree::fromXml (*xml));
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

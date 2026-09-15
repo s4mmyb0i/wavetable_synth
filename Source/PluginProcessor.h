@@ -37,8 +37,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    juce::AudioProcessorValueTreeState& getAPVTS () { return apvts_; }
+
 private:
     Wavetable wavetable_;
+    juce::AudioProcessorValueTreeState apvts_;
     juce::Synthesiser synth_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessor)

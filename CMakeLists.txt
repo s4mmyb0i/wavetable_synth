@@ -39,7 +39,8 @@ target_sources(WavetableSynth
         Source/dsp/WavetableOsc.cpp
         Source/dsp/Envelope.cpp
         Source/synth/SynthSound.h
-        Source/synth/SynthVoice.cpp)
+        Source/synth/SynthVoice.cpp
+        Source/params/ParameterLayout.cpp)
 
 target_include_directories(WavetableSynth
     PRIVATE
