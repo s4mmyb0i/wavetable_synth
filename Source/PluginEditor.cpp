@@ -6,6 +6,13 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
     : AudioProcessorEditor (&p), processorRef (p)
 {
     juce::ignoreUnused (processorRef);
+
+    wavetypeBox.addItemList (juce::StringArray { "Sine", "Saw", "Square"}, 1);
+
+    wavetypeLabel.setText ("Wave", juce::dontSendNotification);
+    wavetypeLabel.attachToComponent (&wavetypeBox, true);
+    addAndMakeVisible (wavetypeBox);
+    addAndMakeVisible (wavetypeLabel);
     
     setupSlider (attackSlider   , attackLabel   , "Attack");
     setupSlider (decaySlider    , decayLabel    , "Decay");
@@ -13,7 +20,10 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
     setupSlider (releaseSlider  , releaseLabel  , "Release");
     
     auto& apvts = processorRef.getAPVTS();
-
+    
+    wavetypeAttachment = std::make_unique<ComboBoxAttachment> (
+        apvts, ParamIDs::wavetype, wavetypeBox);
+    
     attackAttachment  = std::make_unique<SliderAttachment> (apvts, ParamIDs::attack,  attackSlider);
     decayAttachment   = std::make_unique<SliderAttachment> (apvts, ParamIDs::decay,   decaySlider);
     sustainAttachment = std::make_unique<SliderAttachment> (apvts, ParamIDs::sustain, sustainSlider);
@@ -49,11 +59,13 @@ void WavetableSynthAudioProcessorEditor::paint (juce::Graphics& g)
 void WavetableSynthAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (20);
-    area.removeFromTop(24);
 
-    const int n = 4;
-    const int w = area.getWidth() / n;
+    auto top = area.removeFromTop (32);
+    wavetypeBox.setBounds (top.removeFromLeft (180));
 
+    area.removeFromTop (24); // space for rotary labels
+
+    const int w = area.getWidth() / 4;
     attackSlider.setBounds  (area.removeFromLeft (w).reduced (8));
     decaySlider.setBounds   (area.removeFromLeft (w).reduced (8));
     sustainSlider.setBounds (area.removeFromLeft (w).reduced (8));

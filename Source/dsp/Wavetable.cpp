@@ -7,13 +7,38 @@ Wavetable Wavetable::sine()
 {
     Wavetable table;
 
-    double phase;
-    for (int i = 0; i < static_cast<int>(size); ++i)
+    for (std::size_t i = 0; i < size; ++i)
     {
-        phase = static_cast<double>(i) / static_cast<double>(size);
-        table.samples_[static_cast<std::size_t>(i)] = static_cast<float>(std::sin(phase * dsp::kTwoPi));
+        const double phase = static_cast<double>(i) / size;
+        table.samples_[i] = static_cast<float>(std::sin(phase * dsp::kTwoPi));
     }
 
+    return table;
+}
+
+Wavetable Wavetable::saw()
+{
+    Wavetable table;
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+        const double phase = static_cast<double>(i) / size;
+        table.samples_[i] = static_cast<float>(2.0 * phase - 1.0);
+    }
+
+    return table;
+}
+
+Wavetable Wavetable::square()
+{
+    Wavetable table;
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+        const double phase = static_cast<double>(i) / size;
+        table.samples_[i] = phase < 0.5 ? 1.0f : -1.0f;
+    }
+    
     return table;
 }
 

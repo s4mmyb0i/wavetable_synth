@@ -2,6 +2,7 @@
 
 namespace ParamIDs
 {
+    inline constexpr const char* wavetype = "wavetype";
     inline constexpr const char* attack = "attack";
     inline constexpr const char* decay = "decay";
     inline constexpr const char* sustain = "sustain";

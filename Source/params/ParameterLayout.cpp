@@ -5,6 +5,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
+    layout.add (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID {ParamIDs::wavetype, 1},
+        "Wave",
+        juce::StringArray { "Sine", "Saw", "Square" },
+        0
+    ));
+
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::attack, 1},
         "Attack",

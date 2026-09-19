@@ -23,6 +23,8 @@ public:
     using juce::SynthesiserVoice::renderNextBlock;
     void setCurrentPlaybackSampleRate (double newRate) override;
 
+    void setWavetable (const Wavetable& table) { osc_.setTable (table); }
+
     void setEnvelopeParameters (const Envelope::Parameters& params) { envelope_.setParameters(params); }
 
 private:

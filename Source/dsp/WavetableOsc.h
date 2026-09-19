@@ -12,6 +12,8 @@ public:
     void setFrequency (float hz);
     void reset();
 
+    void setTable (const Wavetable& table) { table_ = &table; }
+
     // One output sample, then advance phase.
     float process();
 

@@ -40,7 +40,10 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS () { return apvts_; }
 
 private:
-    Wavetable wavetable_;
+    Wavetable sineTable_ = Wavetable::sine();
+    Wavetable sawTable_ = Wavetable::saw();
+    Wavetable squareTable_ = Wavetable::square();
+    
     juce::AudioProcessorValueTreeState apvts_;
     juce::Synthesiser synth_;
 

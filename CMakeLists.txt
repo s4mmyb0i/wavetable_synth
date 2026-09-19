@@ -59,3 +59,7 @@ target_link_libraries(WavetableSynth
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+# Offline DSP unit tests (Catch2). Does not build the plugin.
+enable_testing()
+add_subdirectory(tests)
