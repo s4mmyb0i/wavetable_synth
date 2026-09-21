@@ -7,7 +7,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
 {
     juce::ignoreUnused (processorRef);
 
-    wavetypeBox.addItemList (juce::StringArray { "Sine", "Saw", "Square"}, 1);
+    wavetypeBox.addItemList (juce::StringArray { "Sine", "Saw", "Square", "Triangle"}, 1);
 
     wavetypeLabel.setText ("Wave", juce::dontSendNotification);
     wavetypeLabel.attachToComponent (&wavetypeBox, true);

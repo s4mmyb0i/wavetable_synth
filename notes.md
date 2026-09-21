@@ -12,12 +12,15 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
-September 19, 2026
+## September 21, 2026
+
+- Added triangle waves
+- Initial attempt at RMS normalization (saw and square waves sound much louder than triangle and sine)
+
+## September 19, 2026
 
 - Added square and saw waves
 - Added unit tests
-- TODO: Add triangle wave
-- TODO: Fix notes getting stuck when clicking on a menu item
 
 ## September 15, 2026
 

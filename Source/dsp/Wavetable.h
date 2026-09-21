@@ -14,10 +14,12 @@ public:
     static Wavetable sine();
     static Wavetable saw();
     static Wavetable square();
-
+    static Wavetable triangle();
+    
     // phase01 is in [0, 1). Return the interpolated amplitude at that phase.
     float lookup (float phase01) const;
-
+    
 private:
+    void normalizeRms (float targetRms);
     std::array<float, size> samples_ {};
 };

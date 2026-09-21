@@ -79,9 +79,10 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 
     switch (waveTypeIndex)
     {
-        case 1:  table = &sawTable_;    break;
-        case 2:  table = &squareTable_; break;
-        default: table = &sineTable_;   break;
+        case 1:  table = &sawTable_;      break;
+        case 2:  table = &squareTable_;   break;
+        case 3:  table = &triangleTable_; break;
+        default: table = &sineTable_;     break;
     }
 
     Envelope::Parameters envParams;
