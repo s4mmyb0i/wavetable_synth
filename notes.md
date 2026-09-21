@@ -16,6 +16,7 @@ OR
 
 - Added triangle waves
 - Initial attempt at RMS normalization (saw and square waves sound much louder than triangle and sine)
+- TODO: Add multiple oscillators
 
 ## September 19, 2026
 
