@@ -36,8 +36,10 @@ target_sources(WavetableSynth
         Source/PluginEditor.cpp
         Source/constants.h
         Source/dsp/Wavetable.cpp
+        Source/dsp/WavetableMipBank.cpp
         Source/dsp/WavetableOsc.cpp
         Source/dsp/Envelope.cpp
+        Source/dsp/Filter.cpp
         Source/synth/SynthSound.h
         Source/synth/SynthVoice.cpp
         Source/params/ParameterLayout.cpp)

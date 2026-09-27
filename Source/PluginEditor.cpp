@@ -7,13 +7,18 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
 {
     juce::ignoreUnused (processorRef);
 
+    // Wavetype
     wavetypeBox.addItemList (juce::StringArray { "Sine", "Saw", "Square", "Triangle"}, 1);
-
     wavetypeLabel.setText ("Wave", juce::dontSendNotification);
     wavetypeLabel.attachToComponent (&wavetypeBox, true);
     addAndMakeVisible (wavetypeBox);
     addAndMakeVisible (wavetypeLabel);
     
+    // Filter
+    setupSlider (cutoffSlider   , cutoffLabel   , "Cutoff");
+    setupSlider (resonanceSlider   , resonanceLabel   , "Resonance");
+
+    // ADSR
     setupSlider (attackSlider   , attackLabel   , "Attack");
     setupSlider (decaySlider    , decayLabel    , "Decay");
     setupSlider (sustainSlider  , sustainLabel  , "Sustain");
@@ -21,15 +26,27 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
     
     auto& apvts = processorRef.getAPVTS();
     
-    wavetypeAttachment = std::make_unique<ComboBoxAttachment> (
+    // Wavetype
+    wavetypeAttachment  = std::make_unique<ComboBoxAttachment> (
         apvts, ParamIDs::wavetype, wavetypeBox);
     
-    attackAttachment  = std::make_unique<SliderAttachment> (apvts, ParamIDs::attack,  attackSlider);
-    decayAttachment   = std::make_unique<SliderAttachment> (apvts, ParamIDs::decay,   decaySlider);
-    sustainAttachment = std::make_unique<SliderAttachment> (apvts, ParamIDs::sustain, sustainSlider);
-    releaseAttachment = std::make_unique<SliderAttachment> (apvts, ParamIDs::release, releaseSlider);
+    // Filter
+    cutoffAttachment    = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::cutoff, cutoffSlider);
+    resonanceAttachment = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::resonance, resonanceSlider);
+    
+    // ADSR
+    attackAttachment    = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::attack,  attackSlider);
+    decayAttachment     = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::decay,   decaySlider);
+    sustainAttachment   = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::sustain, sustainSlider);
+    releaseAttachment   = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::release, releaseSlider);
 
-    setSize (400, 240);
+    setSize (600, 240);
 }
 
 WavetableSynthAudioProcessorEditor::~WavetableSynthAudioProcessorEditor() = default;
@@ -61,13 +78,21 @@ void WavetableSynthAudioProcessorEditor::resized()
     auto area = getLocalBounds().reduced (20);
 
     auto top = area.removeFromTop (32);
+
+    // Wavetype
     wavetypeBox.setBounds (top.removeFromLeft (180));
-
+    
     area.removeFromTop (24); // space for rotary labels
+    const int w = area.getWidth() / 6;
+    
+    // Filter
+    cutoffSlider.setBounds      (area.removeFromLeft (w).reduced (8));
+    resonanceSlider.setBounds   (area.removeFromLeft (w).reduced (8));
 
-    const int w = area.getWidth() / 4;
-    attackSlider.setBounds  (area.removeFromLeft (w).reduced (8));
-    decaySlider.setBounds   (area.removeFromLeft (w).reduced (8));
-    sustainSlider.setBounds (area.removeFromLeft (w).reduced (8));
-    releaseSlider.setBounds (area.reduced (8));
+
+    // ADSR
+    attackSlider.setBounds      (area.removeFromLeft (w).reduced (8));
+    decaySlider.setBounds       (area.removeFromLeft (w).reduced (8));
+    sustainSlider.setBounds     (area.removeFromLeft (w).reduced (8));
+    releaseSlider.setBounds     (area.reduced (8));
 }

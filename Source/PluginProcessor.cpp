@@ -11,12 +11,13 @@ WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
     sineTable_ (Wavetable::sine()),
     apvts_ (*this, nullptr, "PARAMS", createParameterLayout())
 {
-    
+    sawMipBank_.build (WavetableMipBank::Shape::saw);
+    squareMipBank_.build (WavetableMipBank::Shape::square);
+
     for (int voice = 0; voice < NUM_VOICES; ++voice)
-    {
-        synth_.addVoice(new SynthVoice(sineTable_));
-    }
-    synth_.addSound(new SynthSound());
+        synth_.addVoice (new SynthVoice (sineTable_));
+
+    synth_.addSound (new SynthSound());
 }
 
 WavetableSynthAudioProcessor::~WavetableSynthAudioProcessor() = default;
@@ -72,19 +73,34 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
 
+    // Wavetype
     int waveTypeIndex = static_cast<int>(
         apvts_.getRawParameterValue(ParamIDs::wavetype)->load());
 
     const Wavetable* table = &sineTable_;
+    const WavetableMipBank* mipBank = nullptr;
 
     switch (waveTypeIndex)
     {
-        case 1:  table = &sawTable_;      break;
-        case 2:  table = &squareTable_;   break;
-        case 3:  table = &triangleTable_; break;
-        default: table = &sineTable_;     break;
+        case 1:
+            mipBank = &sawMipBank_;
+            break;
+        case 2:
+            mipBank = &squareMipBank_;
+            break;
+        case 3:
+            table = &triangleTable_;
+            break;
+        default:
+            table = &sineTable_;
+            break;
     }
 
+    // Filter
+    const float cutoff          = apvts_.getRawParameterValue(ParamIDs::cutoff)->load();
+    const float resonance       = apvts_.getRawParameterValue(ParamIDs::resonance)->load();
+
+    // ADSR
     Envelope::Parameters envParams;
     envParams.attackSeconds     = apvts_.getRawParameterValue(ParamIDs::attack)->load();
     envParams.decaySeconds      = apvts_.getRawParameterValue(ParamIDs::decay)->load();
@@ -94,7 +110,14 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     for (int i = 0; i < synth_.getNumVoices(); ++i)
         if (SynthVoice* voice = dynamic_cast<SynthVoice*> (synth_.getVoice (i)))
         {
-            voice->setWavetable(*table);
+            if (mipBank != nullptr)
+                voice->setMipBank (mipBank);
+            else
+                voice->setWavetable (*table);
+
+            voice->setFilterCutoff(cutoff);
+            voice->setFilterResonance(resonance);
+
             voice->setEnvelopeParameters(envParams);
         }
 

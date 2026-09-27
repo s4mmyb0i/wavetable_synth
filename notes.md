@@ -2,7 +2,7 @@
 
 ## Build commands:
 
-`make -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug`
+`cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug`
 `cmake --build build --target WavetableSynth_AU WavetableSynth_VST3 WavetableSynth_Standalone`
 `open "build/WavetableSynth_artefacts/Debug/Standalone/Wavetable Synth.app"`
 
@@ -12,11 +12,16 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+## Setpember 25, 2026
+
+- Added low pass filter
+- TODO: Test band limited tables
+- TODO: Add multiple oscillators
+
 ## September 21, 2026
 
 - Added triangle waves
 - Initial attempt at RMS normalization (saw and square waves sound much louder than triangle and sine)
-- TODO: Add multiple oscillators
 
 ## September 19, 2026
 

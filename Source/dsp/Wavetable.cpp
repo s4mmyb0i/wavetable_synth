@@ -1,6 +1,7 @@
 #include "dsp/Wavetable.h"
 #include "dsp/MathConstants.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace
@@ -80,6 +81,48 @@ Wavetable Wavetable::triangle()
             table.samples_[i] = static_cast<float> (4.0 * phase - 1.0);
         else
             table.samples_[i] = static_cast<float> (-4.0 * phase + 3.0);
+    }
+
+    table.normalizeRms (kTargetRms);
+    return table;
+}
+
+Wavetable Wavetable::sawBandLimited (int maxHarmonics)
+{
+    Wavetable table;
+    maxHarmonics = std::max (1, maxHarmonics);
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+        const double phase = static_cast<double> (i) / static_cast<double> (size);
+        const double theta = phase * dsp::kTwoPi;
+        double sample = 0.0;
+
+        for (int k = 1; k <= maxHarmonics; ++k)
+            sample += std::sin (k * theta) / static_cast<double> (k);
+
+        table.samples_[i] = static_cast<float> (sample);
+    }
+
+    table.normalizeRms (kTargetRms);
+    return table;
+}
+
+Wavetable Wavetable::squareBandLimited (int maxHarmonics)
+{
+    Wavetable table;
+    maxHarmonics = std::max (1, maxHarmonics);
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+        const double phase = static_cast<double> (i) / static_cast<double> (size);
+        const double theta = phase * dsp::kTwoPi;
+        double sample = 0.0;
+
+        for (int k = 1; k <= maxHarmonics; k += 2)
+            sample += std::sin (k * theta) / static_cast<double> (k);
+
+        table.samples_[i] = static_cast<float> (sample);
     }
 
     table.normalizeRms (kTargetRms);

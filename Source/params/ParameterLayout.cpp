@@ -5,6 +5,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
+    // Wavetype
     layout.add (std::make_unique<juce::AudioParameterChoice> (
         juce::ParameterID {ParamIDs::wavetype, 1},
         "Wave",
@@ -12,6 +13,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         0
     ));
 
+    // Filter
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::cutoff, 1},
+        "Cutoff",
+        juce::NormalisableRange<float> { 20.0f, 2000.0f, 0.1f, 0.25f} ,
+        200.0f
+    ));
+
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::resonance, 1},
+        "Resonance",
+        juce::NormalisableRange<float> { 0.0f, 1.0f, 0.01f, 0.25f },
+        0.0f
+    ));
+
+    // ADSR
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::attack, 1},
         "Attack",

@@ -17,10 +17,21 @@ private:
 
     WavetableSynthAudioProcessor& processorRef;
 
+    // Wavetype
     juce::ComboBox wavetypeBox;
     juce::Label wavetypeLabel;
     std::unique_ptr<ComboBoxAttachment> wavetypeAttachment;
 
+    // Filter
+    juce::Slider cutoffSlider;
+    juce::Label cutoffLabel;
+    std::unique_ptr<SliderAttachment> cutoffAttachment;
+
+    juce::Slider resonanceSlider;
+    juce::Label resonanceLabel;
+    std::unique_ptr<SliderAttachment> resonanceAttachment;
+
+    // ADSR
     juce::Slider attackSlider;
     juce::Label attackLabel;
     std::unique_ptr<SliderAttachment> attackAttachment;

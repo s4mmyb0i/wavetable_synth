@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/Wavetable.h"
+#include "dsp/WavetableMipBank.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -41,10 +42,11 @@ public:
 
 private:
     Wavetable sineTable_     = Wavetable::sine();
-    Wavetable sawTable_      = Wavetable::saw();
-    Wavetable squareTable_   = Wavetable::square();
     Wavetable triangleTable_ = Wavetable::triangle();
-    
+
+    WavetableMipBank sawMipBank_;
+    WavetableMipBank squareMipBank_;
+
     juce::AudioProcessorValueTreeState apvts_;
     juce::Synthesiser synth_;
 
