@@ -7,6 +7,8 @@
 
 namespace
 {
+constexpr int kTestHarmonics = 64;
+
 float measureRms (const Wavetable& table)
 {
     double sumSquares = 0.0;
@@ -33,19 +35,20 @@ TEST_CASE("sine table lookup at cardinal phases", "[wavetable]")
     REQUIRE(table.lookup(0.75f) == Catch::Approx(-1.0f).margin(1.0e-2f));
 }
 
-TEST_CASE("saw polarity after rms normalize", "[wavetable]")
+TEST_CASE("band-limited saw polarity after rms normalize", "[wavetable]")
 {
-    const auto saw = Wavetable::saw();
+    // Fourier saw Σ sin(kθ)/k: + in first half, − in second, zeros at 0 and 0.5.
+    const auto saw = Wavetable::sawBandLimited (kTestHarmonics);
 
-    REQUIRE(saw.lookup(0.0f) < 0.0f);
-    REQUIRE(saw.lookup(0.25f) < 0.0f);
+    REQUIRE(saw.lookup(0.0f) == Catch::Approx(0.0f).margin(0.05f));
+    REQUIRE(saw.lookup(0.25f) > 0.0f);
     REQUIRE(saw.lookup(0.5f) == Catch::Approx(0.0f).margin(0.05f));
-    REQUIRE(saw.lookup(0.75f) > 0.0f);
+    REQUIRE(saw.lookup(0.75f) < 0.0f);
 }
 
-TEST_CASE("square polarity after rms normalize", "[wavetable]")
+TEST_CASE("band-limited square polarity after rms normalize", "[wavetable]")
 {
-    const auto square = Wavetable::square();
+    const auto square = Wavetable::squareBandLimited (kTestHarmonics);
 
     REQUIRE(square.lookup(0.25f) > 0.0f);
     REQUIRE(square.lookup(0.75f) < 0.0f);
@@ -75,7 +78,7 @@ TEST_CASE("all waveforms share similar rms", "[wavetable]")
     constexpr float tol = 0.02f;
 
     REQUIRE(measureRms(Wavetable::sine()) == Catch::Approx(target).margin(tol));
-    REQUIRE(measureRms(Wavetable::saw()) == Catch::Approx(target).margin(tol));
-    REQUIRE(measureRms(Wavetable::square()) == Catch::Approx(target).margin(tol));
+    REQUIRE(measureRms(Wavetable::sawBandLimited (kTestHarmonics)) == Catch::Approx(target).margin(tol));
+    REQUIRE(measureRms(Wavetable::squareBandLimited (kTestHarmonics)) == Catch::Approx(target).margin(tol));
     REQUIRE(measureRms(Wavetable::triangle()) == Catch::Approx(target).margin(tol));
 }

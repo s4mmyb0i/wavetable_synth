@@ -38,20 +38,24 @@ TEST_CASE("oscillator output is finite", "[osc]")
 TEST_CASE("setTable switches the waveform being read", "[osc]")
 {
     const auto sine = Wavetable::sine();
-    const auto saw = Wavetable::saw();
+    const auto saw = Wavetable::sawBandLimited (64);
 
+    constexpr float sr = 48000.0f;
     WavetableOsc osc(sine);
-    osc.setSampleRate(48000.0f);
-    osc.setFrequency(0.0f); // hold phase so lookup is deterministic
+    osc.setSampleRate(sr);
+
+    // Land on phase 0.25 — at phase 0 both sine and Fourier saw are ~0.
+    osc.setFrequency(0.25f * sr);
     osc.reset();
+    osc.process(); // read 0, advance to 0.25
+    osc.setFrequency(0.0f);
 
     const float fromSine = osc.process();
-    REQUIRE(fromSine == Catch::Approx(sine.lookup(0.0f)).margin(1.0e-5f));
+    REQUIRE(fromSine == Catch::Approx(sine.lookup(0.25f)).margin(1.0e-5f));
 
     osc.setTable(saw);
-    osc.reset();
 
     const float fromSaw = osc.process();
-    REQUIRE(fromSaw == Catch::Approx(saw.lookup(0.0f)).margin(1.0e-5f));
+    REQUIRE(fromSaw == Catch::Approx(saw.lookup(0.25f)).margin(1.0e-5f));
     REQUIRE(fromSaw != Catch::Approx(fromSine).margin(1.0e-3f));
 }

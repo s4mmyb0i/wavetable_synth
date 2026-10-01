@@ -12,11 +12,17 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+## October 1, 2026
+
+- Added additional mip tables
+- Added two pole filter - resonance now works correctly
+- Removed unused naive sqaure/saw table value generation
+- Updated tests to match
+- TODO: Add multiple oscillators
+
 ## Setpember 25, 2026
 
 - Added low pass filter
-- TODO: Test band limited tables
-- TODO: Add multiple oscillators
 
 ## September 21, 2026
 

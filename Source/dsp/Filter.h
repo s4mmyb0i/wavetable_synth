@@ -1,13 +1,12 @@
 #pragma once
 
-// One-pole (or later SVF/biquad) low-pass filter.
 // Process one sample at a time. State lives here.
 class Filter
 {
 public:
     void setSampleRate (float sampleRate);
     void setCutoffHz (float cutoffHz);
-    void setResonance (float resonance01); // unused for a pure 1-pole LP; keep for API growth
+    void setResonance (float resonance01);
 
     void reset();
 
@@ -21,6 +20,8 @@ private:
     float cutoffHz_ = 1000.0f;
     float resonance_ = 0.0f;
 
-    float z1_ = 0.0f;
-    float alpha_ = 0.0f;
+    float lp_ = 0.0f;
+    float bp_ = 0.0f;
+    float g_  = 0.0f;
+    float R_  = 0.0f;
 };

@@ -12,12 +12,9 @@ public:
 
     // Fill samples_ with one period.
     static Wavetable sine();
-    static Wavetable saw();      // geometric (aliases) — keep for comparison / tests
-    static Wavetable square();   // geometric
     static Wavetable triangle();
 
     // Band-limited additive tables: only harmonics 1..maxHarmonics (square: odd k only).
-    // YOU fill the loops — stubs currently fall back to geometric so the project still builds.
     static Wavetable sawBandLimited (int maxHarmonics);
     static Wavetable squareBandLimited (int maxHarmonics);
 

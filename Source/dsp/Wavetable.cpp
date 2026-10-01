@@ -41,34 +41,6 @@ Wavetable Wavetable::sine()
     return table;
 }
 
-Wavetable Wavetable::saw()
-{
-    Wavetable table;
-
-    for (std::size_t i = 0; i < size; ++i)
-    {
-        const double phase = static_cast<double> (i) / static_cast<double> (size);
-        table.samples_[i] = static_cast<float> (2.0 * phase - 1.0);
-    }
-
-    table.normalizeRms (kTargetRms);
-    return table;
-}
-
-Wavetable Wavetable::square()
-{
-    Wavetable table;
-
-    for (std::size_t i = 0; i < size; ++i)
-    {
-        const double phase = static_cast<double> (i) / static_cast<double> (size);
-        table.samples_[i] = phase < 0.5 ? 1.0f : -1.0f;
-    }
-
-    table.normalizeRms (kTargetRms);
-    return table;
-}
-
 Wavetable Wavetable::triangle()
 {
     Wavetable table;
