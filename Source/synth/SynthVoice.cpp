@@ -4,10 +4,9 @@
 #include "dsp/WavetableMipBank.h"
 #include "dsp/Envelope.h"
 
-SynthVoice::SynthVoice (const Wavetable& table)
-    : osc_ (table)
-{
-}
+#include <cmath>
+
+SynthVoice::SynthVoice (const Wavetable& table) : osc1_ (table), osc2_ (table), osc3_ (table) {}
 
 bool SynthVoice::canPlaySound (juce::SynthesiserSound* sound)
 {
@@ -18,12 +17,31 @@ void SynthVoice::setWavetable (const Wavetable& table)
 {
     // Fixed table: don't use mip selection for this voice right now.
     mipBank_ = nullptr;
-    osc_.setTable (table);
+    osc1_.setTable (table);
+    osc2_.setTable (table);
+    osc3_.setTable (table);
 }
 
 void SynthVoice::setMipBank (const WavetableMipBank* bank)
 {
     mipBank_ = bank;
+    refreshMipTable();
+}
+
+float SynthVoice::frequencyForCents (float cents) const
+{
+    return noteFrequencyHz_ * std::pow (2.0f, cents / 1200.0f);
+}
+
+void SynthVoice::applyOscFrequencies()
+{
+    if (noteFrequencyHz_ <= 0.0f)
+        return;
+
+    osc1_.setFrequency (noteFrequencyHz_);
+    osc2_.setFrequency (frequencyForCents (osc2Detune_));
+    osc3_.setFrequency (frequencyForCents (osc3Detune_));
+
     refreshMipTable();
 }
 
@@ -36,22 +54,42 @@ void SynthVoice::refreshMipTable()
     if (sr <= 0.0 || noteFrequencyHz_ <= 0.0f)
         return;
 
-    osc_.setTable (mipBank_->select (noteFrequencyHz_, static_cast<float> (sr)));
+    const float srF = static_cast<float> (sr);
+
+    osc1_.setTable (mipBank_->select (noteFrequencyHz_, srF));
+    osc2_.setTable (mipBank_->select (frequencyForCents (osc2Detune_), srF));
+    osc3_.setTable (mipBank_->select (frequencyForCents (osc3Detune_), srF));
 }
 
-void SynthVoice::startNote (int midiNoteNumber, float velocity,
-                            juce::SynthesiserSound* sound, int currentPitchWheelPosition)
+void SynthVoice::setOscLevels (float osc1Level, float osc2Level, float osc3Level)
+{
+    osc1Level_ = osc1Level;
+    osc2Level_ = osc2Level;
+    osc3Level_ = osc3Level;
+}
+
+void SynthVoice::setOscDetuneCents (float detuneBy, float osc2Detune, float osc3Detune)
+{
+    osc2Detune_ = osc2Detune + detuneBy;
+    osc3Detune_ = osc3Detune + detuneBy;
+
+    if (isVoiceActive())
+        applyOscFrequencies();
+}
+
+void SynthVoice::startNote (int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
+                            int currentPitchWheelPosition)
 {
     (void) sound;
     (void) currentPitchWheelPosition;
 
     noteFrequencyHz_ = static_cast<float> (juce::MidiMessage::getMidiNoteInHertz (midiNoteNumber));
-    osc_.setFrequency (noteFrequencyHz_);
+    applyOscFrequencies();
 
-    // Pick band-limited mip for this pitch (no-op if mipBank_ is null).
-    refreshMipTable();
+    osc1_.reset();
+    osc2_.reset();
+    osc3_.reset();
 
-    osc_.reset();
     filter_.reset();
     level_ = velocity * 0.15f;
     envelope_.noteOn();
@@ -68,7 +106,9 @@ void SynthVoice::stopNote (float velocity, bool allowTailOff)
         envelope_.reset();
         clearCurrentNote();
         level_ = 0.0f;
-        osc_.reset();
+        osc1_.reset();
+        osc2_.reset();
+        osc3_.reset();
     }
 }
 
@@ -78,21 +118,28 @@ void SynthVoice::controllerMoved (int, int) {}
 void SynthVoice::setCurrentPlaybackSampleRate (double newRate)
 {
     juce::SynthesiserVoice::setCurrentPlaybackSampleRate (newRate);
-    osc_.setSampleRate (static_cast<float> (newRate));
+
+    osc1_.setSampleRate (static_cast<float> (newRate));
+    osc2_.setSampleRate (static_cast<float> (newRate));
+    osc3_.setSampleRate (static_cast<float> (newRate));
+
     filter_.setSampleRate (static_cast<float> (newRate));
     envelope_.setSampleRate (newRate);
     refreshMipTable();
 }
 
-void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer,
-                                  int startSample, int numSamples)
+void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSample,
+                                  int numSamples)
 {
     if (! envelope_.isActive())
         return;
 
     for (int i = 0; i < numSamples; ++i)
     {
-        const float filtered = filter_.process (osc_.process());
+        const float mixed = (osc1_.process() * osc1Level_ + osc2_.process() * osc2Level_ +
+                             osc3_.process() * osc3Level_) *
+                            0.80f;
+        const float filtered = filter_.process (mixed);
         const float env = envelope_.getNextSample();
         const float sample = filtered * level_ * env;
 

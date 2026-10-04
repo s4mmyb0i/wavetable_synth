@@ -12,17 +12,22 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+## October 3, 2026
+
+- Added multiple (3) oscillators
+- Connect PlugInGuiMagic for UI
+- Add tests for multi-osc
+
 ## October 1, 2026
 
 - Added additional mip tables
 - Added two pole filter - resonance now works correctly
-- Removed unused naive sqaure/saw table value generation
+- Removed unused naive square/saw table value generation
 - Updated tests to match
-- TODO: Add multiple oscillators
 
 ## Setpember 25, 2026
 
-- Added low pass filter
+- Added basic 1 pole low pass filter
 
 ## September 21, 2026
 

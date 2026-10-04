@@ -7,9 +7,9 @@
 #include "params/ParamIDs.h"
 
 WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
-    : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-    sineTable_ (Wavetable::sine()),
-    apvts_ (*this, nullptr, "PARAMS", createParameterLayout())
+    : AudioProcessor (
+          BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+      sineTable_ (Wavetable::sine()), apvts_ (*this, nullptr, "PARAMS", createParameterLayout())
 {
     sawMipBank_.build (WavetableMipBank::Shape::saw);
     squareMipBank_.build (WavetableMipBank::Shape::square);
@@ -27,14 +27,32 @@ const juce::String WavetableSynthAudioProcessor::getName() const
     return JucePlugin_Name;
 }
 
-bool WavetableSynthAudioProcessor::acceptsMidi() const { return true; }
-bool WavetableSynthAudioProcessor::producesMidi() const { return false; }
-bool WavetableSynthAudioProcessor::isMidiEffect() const { return false; }
+bool WavetableSynthAudioProcessor::acceptsMidi() const
+{
+    return true;
+}
+bool WavetableSynthAudioProcessor::producesMidi() const
+{
+    return false;
+}
+bool WavetableSynthAudioProcessor::isMidiEffect() const
+{
+    return false;
+}
 
-double WavetableSynthAudioProcessor::getTailLengthSeconds() const { return 0.0; }
+double WavetableSynthAudioProcessor::getTailLengthSeconds() const
+{
+    return 0.0;
+}
 
-int WavetableSynthAudioProcessor::getNumPrograms() { return 1; }
-int WavetableSynthAudioProcessor::getCurrentProgram() { return 0; }
+int WavetableSynthAudioProcessor::getNumPrograms()
+{
+    return 1;
+}
+int WavetableSynthAudioProcessor::getCurrentProgram()
+{
+    return 0;
+}
 
 void WavetableSynthAudioProcessor::setCurrentProgram (int index)
 {
@@ -55,7 +73,7 @@ void WavetableSynthAudioProcessor::changeProgramName (int index, const juce::Str
 void WavetableSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     juce::ignoreUnused (samplesPerBlock);
-    synth_.setCurrentPlaybackSampleRate(sampleRate);
+    synth_.setCurrentPlaybackSampleRate (sampleRate);
 }
 
 void WavetableSynthAudioProcessor::releaseResources() {}
@@ -63,8 +81,7 @@ void WavetableSynthAudioProcessor::releaseResources() {}
 bool WavetableSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
     const auto& output = layouts.getMainOutputChannelSet();
-    return output == juce::AudioChannelSet::mono()
-        || output == juce::AudioChannelSet::stereo();
+    return output == juce::AudioChannelSet::mono() || output == juce::AudioChannelSet::stereo();
 }
 
 void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
@@ -73,39 +90,45 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
 
+    // Osc mix/detune
+    const float osc1Level = apvts_.getRawParameterValue (ParamIDs::osc1Level)->load();
+    const float osc2Level = apvts_.getRawParameterValue (ParamIDs::osc2Level)->load();
+    const float osc3Level = apvts_.getRawParameterValue (ParamIDs::osc3Level)->load();
+    const float osc2Detune = apvts_.getRawParameterValue (ParamIDs::osc2Detune)->load();
+    const float osc3Detune = apvts_.getRawParameterValue (ParamIDs::osc3Detune)->load();
+
     // Wavetype
-    int waveTypeIndex = static_cast<int>(
-        apvts_.getRawParameterValue(ParamIDs::wavetype)->load());
+    int waveTypeIndex = static_cast<int> (apvts_.getRawParameterValue (ParamIDs::wavetype)->load());
 
     const Wavetable* table = &sineTable_;
     const WavetableMipBank* mipBank = nullptr;
 
     switch (waveTypeIndex)
     {
-        case 1:
-            mipBank = &sawMipBank_;
-            break;
-        case 2:
-            mipBank = &squareMipBank_;
-            break;
-        case 3:
-            table = &triangleTable_;
-            break;
-        default:
-            table = &sineTable_;
-            break;
+    case 1:
+        mipBank = &sawMipBank_;
+        break;
+    case 2:
+        mipBank = &squareMipBank_;
+        break;
+    case 3:
+        table = &triangleTable_;
+        break;
+    default:
+        table = &sineTable_;
+        break;
     }
 
     // Filter
-    const float cutoff          = apvts_.getRawParameterValue(ParamIDs::cutoff)->load();
-    const float resonance       = apvts_.getRawParameterValue(ParamIDs::resonance)->load();
+    const float cutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
+    const float resonance = apvts_.getRawParameterValue (ParamIDs::resonance)->load();
 
     // ADSR
     Envelope::Parameters envParams;
-    envParams.attackSeconds     = apvts_.getRawParameterValue(ParamIDs::attack)->load();
-    envParams.decaySeconds      = apvts_.getRawParameterValue(ParamIDs::decay)->load();
-    envParams.sustainLevel      = apvts_.getRawParameterValue(ParamIDs::sustain)->load();
-    envParams.releaseSeconds    = apvts_.getRawParameterValue(ParamIDs::release)->load();
+    envParams.attackSeconds = apvts_.getRawParameterValue (ParamIDs::attack)->load();
+    envParams.decaySeconds = apvts_.getRawParameterValue (ParamIDs::decay)->load();
+    envParams.sustainLevel = apvts_.getRawParameterValue (ParamIDs::sustain)->load();
+    envParams.releaseSeconds = apvts_.getRawParameterValue (ParamIDs::release)->load();
 
     for (int i = 0; i < synth_.getNumVoices(); ++i)
         if (SynthVoice* voice = dynamic_cast<SynthVoice*> (synth_.getVoice (i)))
@@ -115,16 +138,22 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             else
                 voice->setWavetable (*table);
 
-            voice->setFilterCutoff(cutoff);
-            voice->setFilterResonance(resonance);
+            voice->setFilterCutoff (cutoff);
+            voice->setFilterResonance (resonance);
 
-            voice->setEnvelopeParameters(envParams);
+            voice->setEnvelopeParameters (envParams);
+
+            voice->setOscLevels (osc1Level, osc2Level, osc3Level);
+            voice->setOscDetuneCents (0.0f, osc2Detune, osc3Detune);
         }
 
-    synth_.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+    synth_.renderNextBlock (buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
-bool WavetableSynthAudioProcessor::hasEditor() const { return true; }
+bool WavetableSynthAudioProcessor::hasEditor() const
+{
+    return true;
+}
 
 juce::AudioProcessorEditor* WavetableSynthAudioProcessor::createEditor()
 {
