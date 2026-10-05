@@ -38,10 +38,10 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    juce::AudioProcessorValueTreeState& getAPVTS () { return apvts_; }
+    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
 
 private:
-    Wavetable sineTable_     = Wavetable::sine();
+    Wavetable sineTable_ = Wavetable::sine();
     Wavetable triangleTable_ = Wavetable::triangle();
 
     WavetableMipBank sawMipBank_;

@@ -18,13 +18,11 @@ void Wavetable::normalizeRms (float targetRms)
 
     const double rms = std::sqrt (sumSquares / static_cast<double> (size));
 
-    if (rms <= 1.0e-12)
-        return;
+    if (rms <= 1.0e-12) return;
 
     const float scale = targetRms / static_cast<float> (rms);
 
-    for (float& sample : samples_)
-        sample *= scale;
+    for (float& sample : samples_) sample *= scale;
 }
 
 Wavetable Wavetable::sine()

@@ -22,6 +22,6 @@ private:
 
     float lp_ = 0.0f;
     float bp_ = 0.0f;
-    float g_  = 0.0f;
-    float R_  = 0.0f;
+    float g_ = 0.0f;
+    float R_ = 0.0f;
 };

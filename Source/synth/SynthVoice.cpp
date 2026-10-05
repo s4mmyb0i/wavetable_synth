@@ -6,59 +6,83 @@
 
 #include <cmath>
 
-SynthVoice::SynthVoice (const Wavetable& table) : osc1_ (table), osc2_ (table), osc3_ (table) {}
+SynthVoice::SynthVoice (const Wavetable& table) : osc1_ (table), osc2_ (table), osc3_ (table)
+{
+    osc1Source_ = {&table, nullptr};
+    osc2Source_ = {&table, nullptr};
+    osc3Source_ = {&table, nullptr};
+}
 
 bool SynthVoice::canPlaySound (juce::SynthesiserSound* sound)
+{ return dynamic_cast<SynthSound*> (sound) != nullptr; }
+
+OscSource& SynthVoice::sourceForIndex (int oscIndex)
 {
-    return dynamic_cast<SynthSound*> (sound) != nullptr;
+    switch (oscIndex)
+    {
+    case 1: return osc2Source_;
+    case 2: return osc3Source_;
+    default: return osc1Source_;
+    }
 }
 
-void SynthVoice::setWavetable (const Wavetable& table)
+WavetableOsc& SynthVoice::oscForIndex (int oscIndex)
 {
-    // Fixed table: don't use mip selection for this voice right now.
-    mipBank_ = nullptr;
-    osc1_.setTable (table);
-    osc2_.setTable (table);
-    osc3_.setTable (table);
+    switch (oscIndex)
+    {
+    case 1: return osc2_;
+    case 2: return osc3_;
+    default: return osc1_;
+    }
 }
 
-void SynthVoice::setMipBank (const WavetableMipBank* bank)
+void SynthVoice::applySourceToOsc (WavetableOsc& osc, const OscSource& source, float frequencyHz)
 {
-    mipBank_ = bank;
-    refreshMipTable();
+    if (source.mipBank != nullptr)
+    {
+        const double sr = getSampleRate();
+        if (sr > 0.0 && frequencyHz > 0.0f)
+            osc.setTable (source.mipBank->select (frequencyHz, static_cast<float> (sr)));
+        return;
+    }
+
+    if (source.table != nullptr) osc.setTable (*source.table);
+}
+
+void SynthVoice::refreshOscTables()
+{
+    applySourceToOsc (osc1_, osc1Source_, noteFrequencyHz_);
+    applySourceToOsc (osc2_, osc2Source_, frequencyForCents (osc2Detune_));
+    applySourceToOsc (osc3_, osc3Source_, frequencyForCents (osc3Detune_));
+}
+
+void SynthVoice::setOscWave (int oscIndex, const Wavetable* table, const WavetableMipBank* mipBank)
+{
+    auto& source = sourceForIndex (oscIndex);
+    source.table = table;
+    source.mipBank = mipBank;
+
+    float freq = noteFrequencyHz_;
+    if (oscIndex == 1)
+        freq = frequencyForCents (osc2Detune_);
+    else if (oscIndex == 2)
+        freq = frequencyForCents (osc3Detune_);
+
+    applySourceToOsc (oscForIndex (oscIndex), source, freq);
 }
 
 float SynthVoice::frequencyForCents (float cents) const
-{
-    return noteFrequencyHz_ * std::pow (2.0f, cents / 1200.0f);
-}
+{ return noteFrequencyHz_ * std::pow (2.0f, cents / 1200.0f); }
 
 void SynthVoice::applyOscFrequencies()
 {
-    if (noteFrequencyHz_ <= 0.0f)
-        return;
+    if (noteFrequencyHz_ <= 0.0f) return;
 
     osc1_.setFrequency (noteFrequencyHz_);
     osc2_.setFrequency (frequencyForCents (osc2Detune_));
     osc3_.setFrequency (frequencyForCents (osc3Detune_));
 
-    refreshMipTable();
-}
-
-void SynthVoice::refreshMipTable()
-{
-    if (mipBank_ == nullptr)
-        return;
-
-    const double sr = getSampleRate();
-    if (sr <= 0.0 || noteFrequencyHz_ <= 0.0f)
-        return;
-
-    const float srF = static_cast<float> (sr);
-
-    osc1_.setTable (mipBank_->select (noteFrequencyHz_, srF));
-    osc2_.setTable (mipBank_->select (frequencyForCents (osc2Detune_), srF));
-    osc3_.setTable (mipBank_->select (frequencyForCents (osc3Detune_), srF));
+    refreshOscTables();
 }
 
 void SynthVoice::setOscLevels (float osc1Level, float osc2Level, float osc3Level)
@@ -73,8 +97,7 @@ void SynthVoice::setOscDetuneCents (float detuneBy, float osc2Detune, float osc3
     osc2Detune_ = osc2Detune + detuneBy;
     osc3Detune_ = osc3Detune + detuneBy;
 
-    if (isVoiceActive())
-        applyOscFrequencies();
+    if (isVoiceActive()) applyOscFrequencies();
 }
 
 void SynthVoice::startNote (int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
@@ -125,14 +148,13 @@ void SynthVoice::setCurrentPlaybackSampleRate (double newRate)
 
     filter_.setSampleRate (static_cast<float> (newRate));
     envelope_.setSampleRate (newRate);
-    refreshMipTable();
+    refreshOscTables();
 }
 
 void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSample,
                                   int numSamples)
 {
-    if (! envelope_.isActive())
-        return;
+    if (! envelope_.isActive()) return;
 
     for (int i = 0; i < numSamples; ++i)
     {

@@ -23,62 +23,64 @@ float measureRms (const Wavetable& table)
 
     return static_cast<float> (std::sqrt (sumSquares / n));
 }
-}
+} // namespace
 
-TEST_CASE("sine table lookup at cardinal phases", "[wavetable]")
+TEST_CASE ("sine table lookup at cardinal phases", "[wavetable]")
 {
     const auto table = Wavetable::sine();
 
-    REQUIRE(table.lookup(0.0f) == Catch::Approx(0.0f).margin(1.0e-3f));
-    REQUIRE(table.lookup(0.25f) == Catch::Approx(1.0f).margin(1.0e-2f));
-    REQUIRE(table.lookup(0.5f) == Catch::Approx(0.0f).margin(1.0e-3f));
-    REQUIRE(table.lookup(0.75f) == Catch::Approx(-1.0f).margin(1.0e-2f));
+    REQUIRE (table.lookup (0.0f) == Catch::Approx (0.0f).margin (1.0e-3f));
+    REQUIRE (table.lookup (0.25f) == Catch::Approx (1.0f).margin (1.0e-2f));
+    REQUIRE (table.lookup (0.5f) == Catch::Approx (0.0f).margin (1.0e-3f));
+    REQUIRE (table.lookup (0.75f) == Catch::Approx (-1.0f).margin (1.0e-2f));
 }
 
-TEST_CASE("band-limited saw polarity after rms normalize", "[wavetable]")
+TEST_CASE ("band-limited saw polarity after rms normalize", "[wavetable]")
 {
     // Fourier saw Σ sin(kθ)/k: + in first half, − in second, zeros at 0 and 0.5.
     const auto saw = Wavetable::sawBandLimited (kTestHarmonics);
 
-    REQUIRE(saw.lookup(0.0f) == Catch::Approx(0.0f).margin(0.05f));
-    REQUIRE(saw.lookup(0.25f) > 0.0f);
-    REQUIRE(saw.lookup(0.5f) == Catch::Approx(0.0f).margin(0.05f));
-    REQUIRE(saw.lookup(0.75f) < 0.0f);
+    REQUIRE (saw.lookup (0.0f) == Catch::Approx (0.0f).margin (0.05f));
+    REQUIRE (saw.lookup (0.25f) > 0.0f);
+    REQUIRE (saw.lookup (0.5f) == Catch::Approx (0.0f).margin (0.05f));
+    REQUIRE (saw.lookup (0.75f) < 0.0f);
 }
 
-TEST_CASE("band-limited square polarity after rms normalize", "[wavetable]")
+TEST_CASE ("band-limited square polarity after rms normalize", "[wavetable]")
 {
     const auto square = Wavetable::squareBandLimited (kTestHarmonics);
 
-    REQUIRE(square.lookup(0.25f) > 0.0f);
-    REQUIRE(square.lookup(0.75f) < 0.0f);
+    REQUIRE (square.lookup (0.25f) > 0.0f);
+    REQUIRE (square.lookup (0.75f) < 0.0f);
 }
 
-TEST_CASE("triangle has expected polarity", "[wavetable]")
+TEST_CASE ("triangle has expected polarity", "[wavetable]")
 {
     const auto triangle = Wavetable::triangle();
 
-    REQUIRE(triangle.lookup(0.125f) < 0.0f);
-    REQUIRE(triangle.lookup(0.375f) > 0.0f);
-    REQUIRE(triangle.lookup(0.625f) > 0.0f);
-    REQUIRE(triangle.lookup(0.875f) < 0.0f);
+    REQUIRE (triangle.lookup (0.125f) < 0.0f);
+    REQUIRE (triangle.lookup (0.375f) > 0.0f);
+    REQUIRE (triangle.lookup (0.625f) > 0.0f);
+    REQUIRE (triangle.lookup (0.875f) < 0.0f);
 }
 
-TEST_CASE("lookup wraps phase into one cycle", "[wavetable]")
+TEST_CASE ("lookup wraps phase into one cycle", "[wavetable]")
 {
     const auto table = Wavetable::sine();
 
-    REQUIRE(table.lookup(0.1f) == Catch::Approx(table.lookup(1.1f)).margin(1.0e-5f));
-    REQUIRE(table.lookup(-0.25f) == Catch::Approx(table.lookup(0.75f)).margin(1.0e-3f));
+    REQUIRE (table.lookup (0.1f) == Catch::Approx (table.lookup (1.1f)).margin (1.0e-5f));
+    REQUIRE (table.lookup (-0.25f) == Catch::Approx (table.lookup (0.75f)).margin (1.0e-3f));
 }
 
-TEST_CASE("all waveforms share similar rms", "[wavetable]")
+TEST_CASE ("all waveforms share similar rms", "[wavetable]")
 {
     constexpr float target = 0.70710678118f;
     constexpr float tol = 0.02f;
 
-    REQUIRE(measureRms(Wavetable::sine()) == Catch::Approx(target).margin(tol));
-    REQUIRE(measureRms(Wavetable::sawBandLimited (kTestHarmonics)) == Catch::Approx(target).margin(tol));
-    REQUIRE(measureRms(Wavetable::squareBandLimited (kTestHarmonics)) == Catch::Approx(target).margin(tol));
-    REQUIRE(measureRms(Wavetable::triangle()) == Catch::Approx(target).margin(tol));
+    REQUIRE (measureRms (Wavetable::sine()) == Catch::Approx (target).margin (tol));
+    REQUIRE (measureRms (Wavetable::sawBandLimited (kTestHarmonics)) ==
+             Catch::Approx (target).margin (tol));
+    REQUIRE (measureRms (Wavetable::squareBandLimited (kTestHarmonics)) ==
+             Catch::Approx (target).margin (tol));
+    REQUIRE (measureRms (Wavetable::triangle()) == Catch::Approx (target).margin (tol));
 }

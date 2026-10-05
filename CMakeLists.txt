@@ -34,6 +34,7 @@ target_sources(WavetableSynth
     PRIVATE
         Source/PluginProcessor.cpp
         Source/PluginEditor.cpp
+        Source/ui/SynthLookAndFeel.cpp
         Source/constants.h
         Source/dsp/Wavetable.cpp
         Source/dsp/WavetableMipBank.cpp

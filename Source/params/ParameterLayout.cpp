@@ -1,6 +1,12 @@
 #include "params/ParameterLayout.h"
 #include "params/ParamIDs.h"
 
+namespace
+{
+juce::StringArray waveChoices()
+{ return juce::StringArray {"Sine", "Saw", "Square", "Triangle"}; }
+} // namespace
+
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
@@ -20,16 +26,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc2Detune, 1}, "Osc 2 Detune",
-        juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, 7.0f)); // cents
+        juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, 7.0f));
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc3Detune, 1}, "Osc 3 Detune",
         juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, -7.0f));
 
-    // Wavetype
+    // Per-osc wavetype
     layout.add (std::make_unique<juce::AudioParameterChoice> (
-        juce::ParameterID {ParamIDs::wavetype, 1}, "Wave",
-        juce::StringArray {"Sine", "Saw", "Square", "Triangle"}, 0));
+        juce::ParameterID {ParamIDs::osc1Wave, 1}, "Osc 1 Wave", waveChoices(), 1)); // Saw
+    layout.add (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID {ParamIDs::osc2Wave, 1}, "Osc 2 Wave", waveChoices(), 2)); // Square
+    layout.add (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID {ParamIDs::osc3Wave, 1}, "Osc 3 Wave", waveChoices(), 0)); // Sine
 
     // Filter
     layout.add (std::make_unique<juce::AudioParameterFloat> (

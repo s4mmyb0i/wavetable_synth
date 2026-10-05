@@ -6,8 +6,7 @@
 
 void Filter::setSampleRate (float sampleRate)
 {
-    if (sampleRate > 0.0f)
-        sampleRate_ = sampleRate;
+    if (sampleRate > 0.0f) sampleRate_ = sampleRate;
 
     updateCoefficient();
 }
@@ -20,7 +19,7 @@ void Filter::setCutoffHz (float cutoffHz)
 
 void Filter::setResonance (float resonance01)
 {
-    resonance_ = std::clamp(resonance01, 0.0f, 1.0f);
+    resonance_ = std::clamp (resonance01, 0.0f, 1.0f);
     updateCoefficient();
 }
 
@@ -32,9 +31,8 @@ void Filter::reset()
 
 void Filter::updateCoefficient()
 {
-    if (sampleRate_ <= 0.0f || cutoffHz_ <= 0.0f)
-        return;
-    
+    if (sampleRate_ <= 0.0f || cutoffHz_ <= 0.0f) return;
+
     g_ = static_cast<float> (std::tan (dsp::kPi * cutoffHz_ / sampleRate_));
     g_ = std::min (g_, 1.0f);
     R_ = 2.0f - 1.9f * resonance_;

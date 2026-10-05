@@ -14,8 +14,7 @@ WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
     sawMipBank_.build (WavetableMipBank::Shape::saw);
     squareMipBank_.build (WavetableMipBank::Shape::square);
 
-    for (int voice = 0; voice < NUM_VOICES; ++voice)
-        synth_.addVoice (new SynthVoice (sineTable_));
+    for (int voice = 0; voice < NUM_VOICES; ++voice) synth_.addVoice (new SynthVoice (sineTable_));
 
     synth_.addSound (new SynthSound());
 }
@@ -23,41 +22,25 @@ WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
 WavetableSynthAudioProcessor::~WavetableSynthAudioProcessor() = default;
 
 const juce::String WavetableSynthAudioProcessor::getName() const
-{
-    return JucePlugin_Name;
-}
+{ return JucePlugin_Name; }
 
 bool WavetableSynthAudioProcessor::acceptsMidi() const
-{
-    return true;
-}
+{ return true; }
 bool WavetableSynthAudioProcessor::producesMidi() const
-{
-    return false;
-}
+{ return false; }
 bool WavetableSynthAudioProcessor::isMidiEffect() const
-{
-    return false;
-}
+{ return false; }
 
 double WavetableSynthAudioProcessor::getTailLengthSeconds() const
-{
-    return 0.0;
-}
+{ return 0.0; }
 
 int WavetableSynthAudioProcessor::getNumPrograms()
-{
-    return 1;
-}
+{ return 1; }
 int WavetableSynthAudioProcessor::getCurrentProgram()
-{
-    return 0;
-}
+{ return 0; }
 
 void WavetableSynthAudioProcessor::setCurrentProgram (int index)
-{
-    juce::ignoreUnused (index);
-}
+{ juce::ignoreUnused (index); }
 
 const juce::String WavetableSynthAudioProcessor::getProgramName (int index)
 {
@@ -66,9 +49,7 @@ const juce::String WavetableSynthAudioProcessor::getProgramName (int index)
 }
 
 void WavetableSynthAudioProcessor::changeProgramName (int index, const juce::String& newName)
-{
-    juce::ignoreUnused (index, newName);
-}
+{ juce::ignoreUnused (index, newName); }
 
 void WavetableSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
@@ -97,27 +78,45 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     const float osc2Detune = apvts_.getRawParameterValue (ParamIDs::osc2Detune)->load();
     const float osc3Detune = apvts_.getRawParameterValue (ParamIDs::osc3Detune)->load();
 
-    // Wavetype
-    int waveTypeIndex = static_cast<int> (apvts_.getRawParameterValue (ParamIDs::wavetype)->load());
-
-    const Wavetable* table = &sineTable_;
-    const WavetableMipBank* mipBank = nullptr;
-
-    switch (waveTypeIndex)
+    // Resolve each osc's wave choice → fixed table and/or mip bank (exactly one used).
+    const auto resolveWave =
+        [this] (int waveIndex, const Wavetable*& table, const WavetableMipBank*& mipBank)
     {
-    case 1:
-        mipBank = &sawMipBank_;
-        break;
-    case 2:
-        mipBank = &squareMipBank_;
-        break;
-    case 3:
-        table = &triangleTable_;
-        break;
-    default:
         table = &sineTable_;
-        break;
-    }
+        mipBank = nullptr;
+
+        switch (waveIndex)
+        {
+        case 1:
+            table = nullptr;
+            mipBank = &sawMipBank_;
+            break;
+        case 2:
+            table = nullptr;
+            mipBank = &squareMipBank_;
+            break;
+        case 3: table = &triangleTable_; break;
+        default: break; // sine
+        }
+    };
+
+    const int osc1Wave =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc1Wave)->load());
+    const int osc2Wave =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc2Wave)->load());
+    const int osc3Wave =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc3Wave)->load());
+
+    const Wavetable* osc1Table = nullptr;
+    const Wavetable* osc2Table = nullptr;
+    const Wavetable* osc3Table = nullptr;
+    const WavetableMipBank* osc1Mip = nullptr;
+    const WavetableMipBank* osc2Mip = nullptr;
+    const WavetableMipBank* osc3Mip = nullptr;
+
+    resolveWave (osc1Wave, osc1Table, osc1Mip);
+    resolveWave (osc2Wave, osc2Table, osc2Mip);
+    resolveWave (osc3Wave, osc3Table, osc3Mip);
 
     // Filter
     const float cutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
@@ -133,14 +132,12 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     for (int i = 0; i < synth_.getNumVoices(); ++i)
         if (SynthVoice* voice = dynamic_cast<SynthVoice*> (synth_.getVoice (i)))
         {
-            if (mipBank != nullptr)
-                voice->setMipBank (mipBank);
-            else
-                voice->setWavetable (*table);
+            voice->setOscWave (0, osc1Table, osc1Mip);
+            voice->setOscWave (1, osc2Table, osc2Mip);
+            voice->setOscWave (2, osc3Table, osc3Mip);
 
             voice->setFilterCutoff (cutoff);
             voice->setFilterResonance (resonance);
-
             voice->setEnvelopeParameters (envParams);
 
             voice->setOscLevels (osc1Level, osc2Level, osc3Level);
@@ -151,19 +148,14 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 }
 
 bool WavetableSynthAudioProcessor::hasEditor() const
-{
-    return true;
-}
+{ return true; }
 
 juce::AudioProcessorEditor* WavetableSynthAudioProcessor::createEditor()
-{
-    return new WavetableSynthAudioProcessorEditor (*this);
-}
+{ return new WavetableSynthAudioProcessorEditor (*this); }
 
 void WavetableSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    if (auto xml = apvts_.copyState().createXml())
-        copyXmlToBinary (*xml, destData);
+    if (auto xml = apvts_.copyState().createXml()) copyXmlToBinary (*xml, destData);
 }
 
 void WavetableSynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -176,6 +168,4 @@ void WavetableSynthAudioProcessor::setStateInformation (const void* data, int si
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
-{
-    return new WavetableSynthAudioProcessor();
-}
+{ return new WavetableSynthAudioProcessor(); }

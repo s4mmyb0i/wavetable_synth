@@ -8,6 +8,12 @@
 class Wavetable;
 class WavetableMipBank;
 
+struct OscSource
+{
+    const Wavetable* table = nullptr;          // sine / triangle
+    const WavetableMipBank* mipBank = nullptr; // saw / square
+};
+
 class SynthVoice final : public juce::SynthesiserVoice
 {
 public:
@@ -25,17 +31,12 @@ public:
     using juce::SynthesiserVoice::renderNextBlock;
     void setCurrentPlaybackSampleRate (double newRate) override;
 
-    // Single-table path (sine / triangle, or any fixed table).
-    void setWavetable (const Wavetable& table);
-
-    // Band-limited path: voice will pick a mip from this bank using note frequency.
-    // Pass nullptr to clear and go back to setWavetable-only behaviour.
-    void setMipBank (const WavetableMipBank* bank);
+    // oscIndex: 0 = osc1, 1 = osc2, 2 = osc3.
+    // Pass either table OR mipBank (the other nullptr).
+    void setOscWave (int oscIndex, const Wavetable* table, const WavetableMipBank* mipBank);
 
     void setEnvelopeParameters (const Envelope::Parameters& params)
-    {
-        envelope_.setParameters (params);
-    }
+    { envelope_.setParameters (params); }
 
     void setFilterCutoff (float cutoffHz) { filter_.setCutoffHz (cutoffHz); }
     void setFilterResonance (float resonance01) { filter_.setResonance (resonance01); }
@@ -44,19 +45,17 @@ public:
     void setOscDetuneCents (float detuneBy, float osc2Detune, float osc3Detune);
 
 private:
-    // Apply note + detune to each osc; refresh mip tables for those frequencies.
     void applyOscFrequencies();
-
-    // If mipBank_ != nullptr, select a table per osc from its (possibly detuned) frequency.
-    void refreshMipTable();
+    void refreshOscTables();
+    void applySourceToOsc (WavetableOsc& osc, const OscSource& source, float frequencyHz);
 
     float frequencyForCents (float cents) const;
+    OscSource& sourceForIndex (int oscIndex);
+    WavetableOsc& oscForIndex (int oscIndex);
 
-    WavetableOsc osc1_;
-    WavetableOsc osc2_;
-    WavetableOsc osc3_;
+    WavetableOsc osc1_, osc2_, osc3_;
+    OscSource osc1Source_, osc2Source_, osc3Source_;
 
-    // Match APVTS defaults: osc1 only until the user raises osc2/3.
     float osc1Level_ = 1.0f;
     float osc2Level_ = 0.0f;
     float osc3Level_ = 0.0f;
@@ -66,7 +65,5 @@ private:
     Filter filter_;
     Envelope envelope_;
     float level_ = 0.0f;
-
-    const WavetableMipBank* mipBank_ = nullptr;
     float noteFrequencyHz_ = 440.0f;
 };

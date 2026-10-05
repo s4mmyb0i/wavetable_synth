@@ -10,8 +10,10 @@ inline constexpr const char* osc3Level = "osc3Level";
 inline constexpr const char* osc2Detune = "osc2Detune"; // cents
 inline constexpr const char* osc3Detune = "osc3Detune";
 
-// Wavetype
-inline constexpr const char* wavetype = "wavetype";
+// Per-osc wavetype
+inline constexpr const char* osc1Wave = "osc1Wave";
+inline constexpr const char* osc2Wave = "osc2Wave";
+inline constexpr const char* osc3Wave = "osc3Wave";
 
 // Filter
 inline constexpr const char* cutoff = "cutoff";

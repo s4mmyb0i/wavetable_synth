@@ -11,7 +11,7 @@ A polyphonic wavetable synthesizer built with [JUCE](https://juce.com/) and CMak
 - **Mip selection** by note frequency so harmonics stay under ~0.9× Nyquist
 - **ADSR envelope** (custom, not `juce::ADSR`)
 - **SVF low-pass** with cutoff and resonance
-- **APVTS** parameters + simple editor UI
+- **APVTS** parameters + custom LookAndFeel editor (osc mix/detune, filter, ADSR)
 - **Catch2** unit tests for core DSP
 
 Signal path per voice: `oscillator → filter → × envelope × velocity`
@@ -68,6 +68,8 @@ Filter by tag, e.g. mip tests only:
 
 | Parameter   | Role                                      |
 |------------|--------------------------------------------|
+| Osc 1–3 Level | Mix levels for each oscillator          |
+| Osc 2–3 Detune | Cents offset vs note pitch              |
 | Wave       | Sine / Saw / Square / Triangle             |
 | Cutoff     | Filter cutoff (Hz)                         |
 | Resonance  | SVF resonance (0 = gentle, 1 ≈ self-osc) |

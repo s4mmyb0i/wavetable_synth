@@ -12,12 +12,12 @@ void WavetableMipBank::build (Shape shape)
 
         switch (shape)
         {
-            case Shape::saw:
-                levels_[static_cast<std::size_t> (i)] = Wavetable::sawBandLimited (n);
-                break;
-            case Shape::square:
-                levels_[static_cast<std::size_t> (i)] = Wavetable::squareBandLimited (n);
-                break;
+        case Shape::saw:
+            levels_[static_cast<std::size_t> (i)] = Wavetable::sawBandLimited (n);
+            break;
+        case Shape::square:
+            levels_[static_cast<std::size_t> (i)] = Wavetable::squareBandLimited (n);
+            break;
         }
     }
 }

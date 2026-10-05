@@ -3,10 +3,7 @@
 
 #include <cmath>
 
-WavetableOsc::WavetableOsc (const Wavetable& table)
-    : table_ (&table)
-{
-}
+WavetableOsc::WavetableOsc (const Wavetable& table) : table_ (&table) {}
 
 void WavetableOsc::setSampleRate (float sampleRate)
 {
@@ -21,15 +18,12 @@ void WavetableOsc::setFrequency (float hz)
 }
 
 void WavetableOsc::reset()
-{
-    phase_ = 0.0f;
-}
+{ phase_ = 0.0f; }
 
 float WavetableOsc::process()
 {
-    float sample = table_->lookup(phase_);
+    float sample = table_->lookup (phase_);
     phase_ += increment_;
-    phase_ -= floor(phase_);
+    phase_ -= floor (phase_);
     return sample;
-
 }
