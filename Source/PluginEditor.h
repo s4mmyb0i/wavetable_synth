@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PluginProcessor.h"
+#include "juce_audio_utils/juce_audio_utils.h"
 #include "ui/SynthLookAndFeel.h"
 
 class WavetableSynthAudioProcessorEditor final : public juce::AudioProcessorEditor
@@ -63,6 +64,8 @@ private:
     juce::Rectangle<int> oscSectionBounds_;
     juce::Rectangle<int> filterSectionBounds_;
     juce::Rectangle<int> envSectionBounds_;
+
+    juce::MidiKeyboardComponent keyboard_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessorEditor)
 };

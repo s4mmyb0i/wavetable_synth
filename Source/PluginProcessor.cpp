@@ -144,6 +144,7 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             voice->setOscDetuneCents (0.0f, osc2Detune, osc3Detune);
         }
 
+    keyboardState_.processNextMidiBuffer (midiMessages, 0, buffer.getNumSamples(), true);
     synth_.renderNextBlock (buffer, midiMessages, 0, buffer.getNumSamples());
 }
 

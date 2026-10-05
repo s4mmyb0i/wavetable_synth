@@ -13,7 +13,9 @@ constexpr int kWaveBoxH = 26;
 
 WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     WavetableSynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p)
+    : AudioProcessorEditor (&p),
+      processorRef (p),
+      keyboard_ (p.getKeyboardState(), juce::MidiKeyboardComponent::horizontalKeyboard)
 {
     setLookAndFeel (&lookAndFeel_);
 
@@ -72,7 +74,24 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     releaseAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::release, releaseSlider_);
 
-    setSize (760, 460);
+    keyboard_.setAvailableRange (36, 96); // C2–C7
+    keyboard_.setOctaveForMiddleC (4);
+    keyboard_.setScrollButtonsVisible (false);
+    keyboard_.setColour (juce::MidiKeyboardComponent::whiteNoteColourId,
+                         juce::Colour (0xff2a3036));
+    keyboard_.setColour (juce::MidiKeyboardComponent::blackNoteColourId,
+                         juce::Colour (0xff141618));
+    keyboard_.setColour (juce::MidiKeyboardComponent::keySeparatorLineColourId,
+                         SynthLookAndFeel::panelBorder);
+    keyboard_.setColour (juce::MidiKeyboardComponent::mouseOverKeyOverlayColourId,
+                         SynthLookAndFeel::accent.withAlpha (0.25f));
+    keyboard_.setColour (juce::MidiKeyboardComponent::keyDownOverlayColourId,
+                         SynthLookAndFeel::accent.withAlpha (0.55f));
+    keyboard_.setColour (juce::MidiKeyboardComponent::textLabelColourId,
+                         SynthLookAndFeel::textMuted);
+    addAndMakeVisible (keyboard_);
+
+    setSize (760, 560);
     setResizable (false, false);
 }
 
@@ -155,7 +174,21 @@ void WavetableSynthAudioProcessorEditor::paint (juce::Graphics& g)
 
 void WavetableSynthAudioProcessorEditor::resized()
 {
-    auto bounds = getLocalBounds().reduced (kPad);
+    auto full = getLocalBounds();
+
+    // Full-width keyboard strip along the bottom of the plugin.
+    constexpr int kKeyboardH = 88;
+    auto keyboardArea = full.removeFromBottom (kKeyboardH);
+    keyboard_.setBounds (keyboardArea);
+
+    // Scale white-key width so the note range fills the component (no short keyboard / scroll gap).
+    const float totalW = keyboard_.getTotalKeyboardWidth();
+    if (totalW > 1.0f)
+        keyboard_.setKeyWidth (keyboard_.getKeyWidth() * static_cast<float> (keyboardArea.getWidth())
+                               / totalW);
+
+    auto bounds = full.reduced (kPad);
+    bounds.removeFromBottom (12); // gap above keyboard
 
     auto header = bounds.removeFromTop (kHeaderH);
     titleLabel_.setBounds (header);

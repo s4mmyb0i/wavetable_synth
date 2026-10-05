@@ -2,6 +2,7 @@
 
 #include "dsp/Wavetable.h"
 #include "dsp/WavetableMipBank.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -39,6 +40,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
+    juce::MidiKeyboardState& getKeyboardState() { return keyboardState_; }
 
 private:
     Wavetable sineTable_ = Wavetable::sine();
@@ -49,6 +51,8 @@ private:
 
     juce::AudioProcessorValueTreeState apvts_;
     juce::Synthesiser synth_;
+
+    juce::MidiKeyboardState keyboardState_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessor)
 };
