@@ -9,6 +9,7 @@ constexpr int kSectionTitleH = 22;
 constexpr int kLabelH = 18;
 constexpr int kTextBoxH = 18;
 constexpr int kWaveBoxH = 26;
+constexpr int kGap = 10;
 } // namespace
 
 WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
@@ -25,11 +26,19 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     titleLabel_.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (titleLabel_);
 
-    setupRotary (osc1LevelSlider_, osc1LevelLabel_, "Osc 1");
-    setupRotary (osc2LevelSlider_, osc2LevelLabel_, "Osc 2");
-    setupRotary (osc2DetuneSlider_, osc2DetuneLabel_, "Detune 2");
-    setupRotary (osc3LevelSlider_, osc3LevelLabel_, "Osc 3");
-    setupRotary (osc3DetuneSlider_, osc3DetuneLabel_, "Detune 3");
+    setupRotary (osc1LevelSlider_, osc1LevelLabel_, "Level");
+    setupRotary (osc1UnisonCountSlider_, osc1UnisonCountLabel_, "Unison");
+    setupRotary (osc1UnisonDetuneSlider_, osc1UnisonDetuneLabel_, "Spread");
+
+    setupRotary (osc2LevelSlider_, osc2LevelLabel_, "Level");
+    setupRotary (osc2DetuneSlider_, osc2DetuneLabel_, "Detune");
+    setupRotary (osc2UnisonCountSlider_, osc2UnisonCountLabel_, "Unison");
+    setupRotary (osc2UnisonDetuneSlider_, osc2UnisonDetuneLabel_, "Spread");
+
+    setupRotary (osc3LevelSlider_, osc3LevelLabel_, "Level");
+    setupRotary (osc3DetuneSlider_, osc3DetuneLabel_, "Detune");
+    setupRotary (osc3UnisonCountSlider_, osc3UnisonCountLabel_, "Unison");
+    setupRotary (osc3UnisonDetuneSlider_, osc3UnisonDetuneLabel_, "Spread");
 
     setupWaveBox (osc1WaveBox_);
     setupWaveBox (osc2WaveBox_);
@@ -63,6 +72,19 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     osc3DetuneAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::osc3Detune, osc3DetuneSlider_);
 
+    osc1UnisonCountAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc1UnisonCount, osc1UnisonCountSlider_);
+    osc1UnisonDetuneAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc1UnisonDetune, osc1UnisonDetuneSlider_);
+    osc2UnisonCountAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc2UnisonCount, osc2UnisonCountSlider_);
+    osc2UnisonDetuneAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc2UnisonDetune, osc2UnisonDetuneSlider_);
+    osc3UnisonCountAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc3UnisonCount, osc3UnisonCountSlider_);
+    osc3UnisonDetuneAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc3UnisonDetune, osc3UnisonDetuneSlider_);
+
     cutoffAttachment_ = std::make_unique<SliderAttachment> (apvts, ParamIDs::cutoff, cutoffSlider_);
     resonanceAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::resonance, resonanceSlider_);
@@ -91,7 +113,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
                          SynthLookAndFeel::textMuted);
     addAndMakeVisible (keyboard_);
 
-    setSize (760, 560);
+    setSize (960, 640);
     setResizable (false, false);
 }
 
@@ -145,6 +167,31 @@ void WavetableSynthAudioProcessorEditor::layoutVerticalColumn (juce::Rectangle<i
     slider.setBounds (column.reduced (column.getWidth() / 4, 2));
 }
 
+void WavetableSynthAudioProcessorEditor::layoutOscPanel (
+    juce::Rectangle<int> bounds, juce::ComboBox& waveBox, juce::Slider& level,
+    juce::Label& levelLabel, juce::Slider* detune, juce::Label* detuneLabel, juce::Slider& uniCount,
+    juce::Label& uniCountLabel, juce::Slider& uniDetune, juce::Label& uniDetuneLabel)
+{
+    auto inner = bounds.reduced (10);
+    inner.removeFromTop (kSectionTitleH);
+
+    auto waveRow = inner.removeFromTop (kWaveBoxH + 6);
+    const int waveW = juce::jmin (waveRow.getWidth() - 8, 140);
+    waveBox.setBounds (waveRow.withSizeKeepingCentre (waveW, kWaveBoxH));
+
+    // 2×2 knob grid. Osc 1 has no pitch detune — leave that cell empty for alignment.
+    auto topRow = inner.removeFromTop (inner.getHeight() / 2);
+    auto bottomRow = inner;
+    const int halfW = topRow.getWidth() / 2;
+
+    layoutKnobColumn (topRow.removeFromLeft (halfW), level, levelLabel);
+    if (detune != nullptr && detuneLabel != nullptr)
+        layoutKnobColumn (topRow, *detune, *detuneLabel);
+
+    layoutKnobColumn (bottomRow.removeFromLeft (halfW), uniCount, uniCountLabel);
+    layoutKnobColumn (bottomRow, uniDetune, uniDetuneLabel);
+}
+
 void WavetableSynthAudioProcessorEditor::paintSection (juce::Graphics& g,
                                                        juce::Rectangle<int> bounds,
                                                        const juce::String& title)
@@ -167,7 +214,9 @@ void WavetableSynthAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour (SynthLookAndFeel::accent.withAlpha (0.35f));
     g.fillRect (0, 0, getWidth(), 2);
 
-    paintSection (g, oscSectionBounds_, "OSCILLATORS");
+    paintSection (g, osc1SectionBounds_, "OSC 1");
+    paintSection (g, osc2SectionBounds_, "OSC 2");
+    paintSection (g, osc3SectionBounds_, "OSC 3");
     paintSection (g, filterSectionBounds_, "FILTER");
     paintSection (g, envSectionBounds_, "ENVELOPE");
 }
@@ -176,19 +225,17 @@ void WavetableSynthAudioProcessorEditor::resized()
 {
     auto full = getLocalBounds();
 
-    // Full-width keyboard strip along the bottom of the plugin.
     constexpr int kKeyboardH = 88;
     auto keyboardArea = full.removeFromBottom (kKeyboardH);
     keyboard_.setBounds (keyboardArea);
 
-    // Scale white-key width so the note range fills the component (no short keyboard / scroll gap).
     const float totalW = keyboard_.getTotalKeyboardWidth();
     if (totalW > 1.0f)
         keyboard_.setKeyWidth (keyboard_.getKeyWidth() * static_cast<float> (keyboardArea.getWidth())
                                / totalW);
 
     auto bounds = full.reduced (kPad);
-    bounds.removeFromBottom (12); // gap above keyboard
+    bounds.removeFromBottom (12);
 
     auto header = bounds.removeFromTop (kHeaderH);
     titleLabel_.setBounds (header);
@@ -196,46 +243,33 @@ void WavetableSynthAudioProcessorEditor::resized()
     bounds.removeFromTop (8);
 
     auto bottom = bounds.removeFromBottom (bounds.getHeight() / 2 - 6);
-    bounds.removeFromBottom (12);
+    bounds.removeFromBottom (kGap);
     auto top = bounds;
 
-    oscSectionBounds_ = top;
+    // Three separate oscillator panels across the top.
+    {
+        const int panelW = (top.getWidth() - 2 * kGap) / 3;
+        osc1SectionBounds_ = top.removeFromLeft (panelW);
+        top.removeFromLeft (kGap);
+        osc2SectionBounds_ = top.removeFromLeft (panelW);
+        top.removeFromLeft (kGap);
+        osc3SectionBounds_ = top;
+    }
+
     filterSectionBounds_ =
         bottom.removeFromLeft (juce::roundToInt (static_cast<float> (bottom.getWidth()) * 0.34f));
-    bottom.removeFromLeft (12);
+    bottom.removeFromLeft (kGap);
     envSectionBounds_ = bottom;
 
-    // Oscillators: knobs on top row, wave combos under Osc 1 / 2 / 3
-    {
-        auto inner = oscSectionBounds_.reduced (10);
-        inner.removeFromTop (kSectionTitleH);
-
-        auto waveRow = inner.removeFromBottom (kWaveBoxH + 4);
-        const int n = 5;
-        const int colW = inner.getWidth() / n;
-
-        auto c1 = inner.removeFromLeft (colW);
-        auto c2 = inner.removeFromLeft (colW);
-        auto c3 = inner.removeFromLeft (colW); // detune 2
-        auto c4 = inner.removeFromLeft (colW);
-        auto c5 = inner; // detune 3
-
-        layoutKnobColumn (c1, osc1LevelSlider_, osc1LevelLabel_);
-        layoutKnobColumn (c2, osc2LevelSlider_, osc2LevelLabel_);
-        layoutKnobColumn (c3, osc2DetuneSlider_, osc2DetuneLabel_);
-        layoutKnobColumn (c4, osc3LevelSlider_, osc3LevelLabel_);
-        layoutKnobColumn (c5, osc3DetuneSlider_, osc3DetuneLabel_);
-
-        // Wave boxes under the three level columns (skip detune columns).
-        const int waveW = juce::jmin (colW - 8, 110);
-        osc1WaveBox_.setBounds (
-            waveRow.removeFromLeft (colW).withSizeKeepingCentre (waveW, kWaveBoxH));
-        osc2WaveBox_.setBounds (
-            waveRow.removeFromLeft (colW).withSizeKeepingCentre (waveW, kWaveBoxH));
-        waveRow.removeFromLeft (colW); // under detune 2
-        osc3WaveBox_.setBounds (
-            waveRow.removeFromLeft (colW).withSizeKeepingCentre (waveW, kWaveBoxH));
-    }
+    layoutOscPanel (osc1SectionBounds_, osc1WaveBox_, osc1LevelSlider_, osc1LevelLabel_, nullptr,
+                    nullptr, osc1UnisonCountSlider_, osc1UnisonCountLabel_, osc1UnisonDetuneSlider_,
+                    osc1UnisonDetuneLabel_);
+    layoutOscPanel (osc2SectionBounds_, osc2WaveBox_, osc2LevelSlider_, osc2LevelLabel_,
+                    &osc2DetuneSlider_, &osc2DetuneLabel_, osc2UnisonCountSlider_,
+                    osc2UnisonCountLabel_, osc2UnisonDetuneSlider_, osc2UnisonDetuneLabel_);
+    layoutOscPanel (osc3SectionBounds_, osc3WaveBox_, osc3LevelSlider_, osc3LevelLabel_,
+                    &osc3DetuneSlider_, &osc3DetuneLabel_, osc3UnisonCountSlider_,
+                    osc3UnisonCountLabel_, osc3UnisonDetuneSlider_, osc3UnisonDetuneLabel_);
 
     {
         auto inner = filterSectionBounds_.reduced (10);

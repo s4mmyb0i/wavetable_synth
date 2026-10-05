@@ -78,6 +78,19 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     const float osc2Detune = apvts_.getRawParameterValue (ParamIDs::osc2Detune)->load();
     const float osc3Detune = apvts_.getRawParameterValue (ParamIDs::osc3Detune)->load();
 
+    const int osc1UnisonCount =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc1UnisonCount)->load());
+    const float osc1UnisonDetune =
+        apvts_.getRawParameterValue (ParamIDs::osc1UnisonDetune)->load();
+    const int osc2UnisonCount =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc2UnisonCount)->load());
+    const float osc2UnisonDetune =
+        apvts_.getRawParameterValue (ParamIDs::osc2UnisonDetune)->load();
+    const int osc3UnisonCount =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc3UnisonCount)->load());
+    const float osc3UnisonDetune =
+        apvts_.getRawParameterValue (ParamIDs::osc3UnisonDetune)->load();
+
     // Resolve each osc's wave choice → fixed table and/or mip bank (exactly one used).
     const auto resolveWave =
         [this] (int waveIndex, const Wavetable*& table, const WavetableMipBank*& mipBank)
@@ -135,6 +148,10 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             voice->setOscWave (0, osc1Table, osc1Mip);
             voice->setOscWave (1, osc2Table, osc2Mip);
             voice->setOscWave (2, osc3Table, osc3Mip);
+
+            voice->setOscUnison (0, osc1UnisonCount, osc1UnisonDetune);
+            voice->setOscUnison (1, osc2UnisonCount, osc2UnisonDetune);
+            voice->setOscUnison (2, osc3UnisonCount, osc3UnisonDetune);
 
             voice->setFilterCutoff (cutoff);
             voice->setFilterResonance (resonance);

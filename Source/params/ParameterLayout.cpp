@@ -32,6 +32,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::ParameterID {ParamIDs::osc3Detune, 1}, "Osc 3 Detune",
         juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, -7.0f));
 
+    // Per-osc unison
+    layout.add (std::make_unique<juce::AudioParameterInt> (
+        juce::ParameterID {ParamIDs::osc1UnisonCount, 1}, "Osc 1 Unison", 1, 8, 1));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc1UnisonDetune, 1}, "Osc 1 Uni Detune",
+        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f));
+
+    layout.add (std::make_unique<juce::AudioParameterInt> (
+        juce::ParameterID {ParamIDs::osc2UnisonCount, 1}, "Osc 2 Unison", 1, 8, 1));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc2UnisonDetune, 1}, "Osc 2 Uni Detune",
+        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f));
+
+    layout.add (std::make_unique<juce::AudioParameterInt> (
+        juce::ParameterID {ParamIDs::osc3UnisonCount, 1}, "Osc 3 Unison", 1, 8, 1));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc3UnisonDetune, 1}, "Osc 3 Uni Detune",
+        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f));
+
     // Per-osc wavetype
     layout.add (std::make_unique<juce::AudioParameterChoice> (
         juce::ParameterID {ParamIDs::osc1Wave, 1}, "Osc 1 Wave", waveChoices(), 1)); // Saw

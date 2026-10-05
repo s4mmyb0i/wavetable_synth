@@ -9,14 +9,14 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable(WavetableTests
     WavetableTests.cpp
-    WavetableOscTests.cpp
     WavetableMipBankTests.cpp
     EnvelopeTests.cpp
     FilterTests.cpp
     MultiOscTests.cpp
+    UnisonOscTests.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Wavetable.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableMipBank.cpp
-    ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableOsc.cpp
+    ${CMAKE_SOURCE_DIR}/Source/dsp/UnisonOsc.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Envelope.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Filter.cpp)
 

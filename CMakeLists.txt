@@ -38,7 +38,7 @@ target_sources(WavetableSynth
         Source/constants.h
         Source/dsp/Wavetable.cpp
         Source/dsp/WavetableMipBank.cpp
-        Source/dsp/WavetableOsc.cpp
+        Source/dsp/UnisonOsc.cpp
         Source/dsp/Envelope.cpp
         Source/dsp/Filter.cpp
         Source/synth/SynthSound.h

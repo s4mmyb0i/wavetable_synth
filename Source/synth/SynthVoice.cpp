@@ -11,6 +11,15 @@ SynthVoice::SynthVoice (const Wavetable& table) : osc1_ (table), osc2_ (table), 
     osc1Source_ = {&table, nullptr};
     osc2Source_ = {&table, nullptr};
     osc3Source_ = {&table, nullptr};
+
+    osc1_.setUnison (1, 0.0f);
+    osc2_.setUnison (1, 0.0f);
+    osc3_.setUnison (1, 0.0f);
+}
+
+void SynthVoice::setOscUnison (int oscIndex, int unisonCount, float detuneCents)
+{
+    oscForIndex (oscIndex).setUnison (unisonCount, detuneCents);
 }
 
 bool SynthVoice::canPlaySound (juce::SynthesiserSound* sound)
@@ -26,7 +35,7 @@ OscSource& SynthVoice::sourceForIndex (int oscIndex)
     }
 }
 
-WavetableOsc& SynthVoice::oscForIndex (int oscIndex)
+UnisonOsc& SynthVoice::oscForIndex (int oscIndex)
 {
     switch (oscIndex)
     {
@@ -36,7 +45,7 @@ WavetableOsc& SynthVoice::oscForIndex (int oscIndex)
     }
 }
 
-void SynthVoice::applySourceToOsc (WavetableOsc& osc, const OscSource& source, float frequencyHz)
+void SynthVoice::applySourceToOsc (UnisonOsc& osc, const OscSource& source, float frequencyHz)
 {
     if (source.mipBank != nullptr)
     {
@@ -70,9 +79,6 @@ void SynthVoice::setOscWave (int oscIndex, const Wavetable* table, const Wavetab
 
     applySourceToOsc (oscForIndex (oscIndex), source, freq);
 }
-
-float SynthVoice::frequencyForCents (float cents) const
-{ return noteFrequencyHz_ * std::pow (2.0f, cents / 1200.0f); }
 
 void SynthVoice::applyOscFrequencies()
 {

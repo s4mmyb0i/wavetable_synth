@@ -23,6 +23,10 @@ private:
     void layoutKnobColumn (juce::Rectangle<int> column, juce::Slider& slider, juce::Label& label);
     void layoutVerticalColumn (juce::Rectangle<int> column, juce::Slider& slider,
                                juce::Label& label);
+    void layoutOscPanel (juce::Rectangle<int> bounds, juce::ComboBox& waveBox, juce::Slider& level,
+                         juce::Label& levelLabel, juce::Slider* detune, juce::Label* detuneLabel,
+                         juce::Slider& uniCount, juce::Label& uniCountLabel, juce::Slider& uniDetune,
+                         juce::Label& uniDetuneLabel);
     void paintSection (juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& title);
 
     WavetableSynthAudioProcessor& processorRef;
@@ -30,13 +34,27 @@ private:
 
     juce::Label titleLabel_;
 
-    // Oscillators
-    juce::Slider osc1LevelSlider_, osc2LevelSlider_, osc3LevelSlider_;
-    juce::Label osc1LevelLabel_, osc2LevelLabel_, osc3LevelLabel_;
-    juce::Slider osc2DetuneSlider_, osc3DetuneSlider_;
-    juce::Label osc2DetuneLabel_, osc3DetuneLabel_;
+    // Osc 1
+    juce::Slider osc1LevelSlider_;
+    juce::Label osc1LevelLabel_;
+    juce::Slider osc1UnisonCountSlider_, osc1UnisonDetuneSlider_;
+    juce::Label osc1UnisonCountLabel_, osc1UnisonDetuneLabel_;
+    juce::ComboBox osc1WaveBox_;
 
-    juce::ComboBox osc1WaveBox_, osc2WaveBox_, osc3WaveBox_;
+    // Osc 2
+    juce::Slider osc2LevelSlider_, osc2DetuneSlider_;
+    juce::Label osc2LevelLabel_, osc2DetuneLabel_;
+    juce::Slider osc2UnisonCountSlider_, osc2UnisonDetuneSlider_;
+    juce::Label osc2UnisonCountLabel_, osc2UnisonDetuneLabel_;
+    juce::ComboBox osc2WaveBox_;
+
+    // Osc 3
+    juce::Slider osc3LevelSlider_, osc3DetuneSlider_;
+    juce::Label osc3LevelLabel_, osc3DetuneLabel_;
+    juce::Slider osc3UnisonCountSlider_, osc3UnisonDetuneSlider_;
+    juce::Label osc3UnisonCountLabel_, osc3UnisonDetuneLabel_;
+    juce::ComboBox osc3WaveBox_;
+
     std::unique_ptr<ComboBoxAttachment> osc1WaveAttachment_;
     std::unique_ptr<ComboBoxAttachment> osc2WaveAttachment_;
     std::unique_ptr<ComboBoxAttachment> osc3WaveAttachment_;
@@ -46,6 +64,12 @@ private:
     std::unique_ptr<SliderAttachment> osc3LevelAttachment_;
     std::unique_ptr<SliderAttachment> osc2DetuneAttachment_;
     std::unique_ptr<SliderAttachment> osc3DetuneAttachment_;
+    std::unique_ptr<SliderAttachment> osc1UnisonCountAttachment_;
+    std::unique_ptr<SliderAttachment> osc1UnisonDetuneAttachment_;
+    std::unique_ptr<SliderAttachment> osc2UnisonCountAttachment_;
+    std::unique_ptr<SliderAttachment> osc2UnisonDetuneAttachment_;
+    std::unique_ptr<SliderAttachment> osc3UnisonCountAttachment_;
+    std::unique_ptr<SliderAttachment> osc3UnisonDetuneAttachment_;
 
     // Filter
     juce::Slider cutoffSlider_, resonanceSlider_;
@@ -61,7 +85,9 @@ private:
     std::unique_ptr<SliderAttachment> sustainAttachment_;
     std::unique_ptr<SliderAttachment> releaseAttachment_;
 
-    juce::Rectangle<int> oscSectionBounds_;
+    juce::Rectangle<int> osc1SectionBounds_;
+    juce::Rectangle<int> osc2SectionBounds_;
+    juce::Rectangle<int> osc3SectionBounds_;
     juce::Rectangle<int> filterSectionBounds_;
     juce::Rectangle<int> envSectionBounds_;
 
