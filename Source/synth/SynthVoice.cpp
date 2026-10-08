@@ -15,12 +15,17 @@ SynthVoice::SynthVoice (const Wavetable& table) : osc1_ (table), osc2_ (table), 
     osc1_.setUnison (1, 0.0f);
     osc2_.setUnison (1, 0.0f);
     osc3_.setUnison (1, 0.0f);
+
+    osc1_.setWarp (WarpMode::off, 0.0f);
+    osc2_.setWarp (WarpMode::off, 0.0f);
+    osc3_.setWarp (WarpMode::off, 0.0f);
 }
 
 void SynthVoice::setOscUnison (int oscIndex, int unisonCount, float detuneCents)
-{
-    oscForIndex (oscIndex).setUnison (unisonCount, detuneCents);
-}
+{ oscForIndex (oscIndex).setUnison (unisonCount, detuneCents); }
+
+void SynthVoice::setOscWarp (int oscIndex, WarpMode mode, float amount)
+{ oscForIndex (oscIndex).setWarp (mode, amount); }
 
 bool SynthVoice::canPlaySound (juce::SynthesiserSound* sound)
 { return dynamic_cast<SynthSound*> (sound) != nullptr; }

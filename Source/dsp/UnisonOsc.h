@@ -6,6 +6,13 @@
 
 class Wavetable;
 
+enum class WarpMode
+{
+    off,
+    bendPlus,
+    sync
+};
+
 class UnisonOsc
 {
 public:
@@ -14,6 +21,7 @@ public:
     void setSampleRate (float sampleRate);
     void setFrequency (float hz);
     void setUnison (int count, float detuneCents);
+    void setWarp (WarpMode mode, float amount);
 
     void setTable (const Wavetable& table) { table_ = &table; }
 
@@ -22,6 +30,8 @@ public:
 
 private:
     const Wavetable* table_ = nullptr;
+
+    float warpPhase (float phase01, float amount, WarpMode mode);
 
     float spread (int index, int count);
     float centsToRatio (float cents) { return std::pow (2.0f, cents / 1200.0f); }
@@ -33,6 +43,9 @@ private:
     float unisonDetuneCents_ = 7.0f;
 
     static constexpr int maxUnison = 8;
+    float warpAmount_ = 0;
+    WarpMode warpMode_ = WarpMode::off;
+
     float phase_[maxUnison] {};
     float increment_[maxUnison] {};
 };

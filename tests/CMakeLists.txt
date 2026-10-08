@@ -14,6 +14,7 @@ add_executable(WavetableTests
     FilterTests.cpp
     MultiOscTests.cpp
     UnisonOscTests.cpp
+    WarpOscTests.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Wavetable.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableMipBank.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/UnisonOsc.cpp

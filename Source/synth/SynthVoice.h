@@ -36,6 +36,7 @@ public:
     void setOscWave (int oscIndex, const Wavetable* table, const WavetableMipBank* mipBank);
 
     void setOscUnison (int oscIndex, int unisonCount, float detuneCents);
+    void setOscWarp (int oscIndex, WarpMode mode, float amount);
 
     void setEnvelopeParameters (const Envelope::Parameters& params)
     { envelope_.setParameters (params); }

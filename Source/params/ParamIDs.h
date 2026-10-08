@@ -23,6 +23,14 @@ inline constexpr const char* osc1Wave = "osc1Wave";
 inline constexpr const char* osc2Wave = "osc2Wave";
 inline constexpr const char* osc3Wave = "osc3Wave";
 
+// Per-osc warp (choice index matches WarpMode: Off, Bend+, Sync)
+inline constexpr const char* osc1WarpMode = "osc1WarpMode";
+inline constexpr const char* osc1WarpAmount = "osc1WarpAmount";
+inline constexpr const char* osc2WarpMode = "osc2WarpMode";
+inline constexpr const char* osc2WarpAmount = "osc2WarpAmount";
+inline constexpr const char* osc3WarpMode = "osc3WarpMode";
+inline constexpr const char* osc3WarpAmount = "osc3WarpAmount";
+
 // Filter
 inline constexpr const char* cutoff = "cutoff";
 inline constexpr const char* resonance = "resonance";

@@ -12,12 +12,16 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+## October 7, 2026
+
+- Added warp per osc
+- TODO: Add visuals for each osc
+- TODO: Add per osc adsr including visual - perhaps make it interactive if able
+- TODO: Add features like wavetable position, mod matrix
+
 ## October 4, 2026
 
 - Added unison per osc
-- TODO: Add visuals for each osc
-- TODO: Add per osc adsr including visual - perhaps make it interactive if able
-- TODO: Add features like warp, wavetable position, mod matrix
 
 ## October 3, 2026
 
@@ -31,7 +35,7 @@ OR
 - Removed unused naive square/saw table value generation
 - Updated tests to match
 
-## Setpember 25, 2026
+## September 25, 2026
 
 - Added basic 1 pole low pass filter
 
