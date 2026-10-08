@@ -2,16 +2,16 @@
 #include <catch2/catch_approx.hpp>
 
 #include "dsp/Wavetable.h"
-#include "dsp/UnisonOsc.h"
+#include "dsp/WavetableOsc.h"
 
 #include <cmath>
 #include <algorithm>
 
 namespace
 {
-UnisonOsc makeOsc (const Wavetable& table, float sr, float freq, WarpMode mode, float amount)
+WavetableOsc makeOsc (const Wavetable& table, float sr, float freq, WarpMode mode, float amount)
 {
-    UnisonOsc osc (table);
+    WavetableOsc osc (table);
     osc.setSampleRate (sr);
     osc.setUnison (1, 0.0f);
     osc.setWarp (mode, amount);
@@ -20,7 +20,7 @@ UnisonOsc makeOsc (const Wavetable& table, float sr, float freq, WarpMode mode, 
     return osc;
 }
 
-float maxAbsDiff (UnisonOsc& a, UnisonOsc& b, int samples)
+float maxAbsDiff (WavetableOsc& a, WavetableOsc& b, int samples)
 {
     float maxDiff = 0.0f;
     for (int i = 0; i < samples; ++i)
@@ -35,8 +35,8 @@ TEST_CASE ("warp off matches default oscillator", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc off = makeOsc (table, sr, freq, WarpMode::off, 0.75f);
-    UnisonOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc off = makeOsc (table, sr, freq, WarpMode::off, 0.75f);
+    WavetableOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
 
     for (int i = 0; i < 1024; ++i)
         REQUIRE (off.process() == Catch::Approx (plain.process()).margin (1.0e-5f));
@@ -48,8 +48,8 @@ TEST_CASE ("bendPlus with zero amount is identity", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 330.0f;
 
-    UnisonOsc bent = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.0f);
-    UnisonOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc bent = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.0f);
+    WavetableOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
 
     for (int i = 0; i < 1024; ++i)
         REQUIRE (bent.process() == Catch::Approx (plain.process()).margin (1.0e-5f));
@@ -61,8 +61,8 @@ TEST_CASE ("sync with zero amount is identity", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 330.0f;
 
-    UnisonOsc synced = makeOsc (table, sr, freq, WarpMode::sync, 0.0f);
-    UnisonOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc synced = makeOsc (table, sr, freq, WarpMode::sync, 0.0f);
+    WavetableOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
 
     for (int i = 0; i < 1024; ++i)
         REQUIRE (synced.process() == Catch::Approx (plain.process()).margin (1.0e-5f));
@@ -74,8 +74,8 @@ TEST_CASE ("bendPlus with amount diverges from plain", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc bent = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.8f);
-    UnisonOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc bent = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.8f);
+    WavetableOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
 
     REQUIRE (maxAbsDiff (bent, plain, 2048) > 0.1f);
 }
@@ -86,8 +86,8 @@ TEST_CASE ("sync with amount diverges from plain", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc synced = makeOsc (table, sr, freq, WarpMode::sync, 0.5f);
-    UnisonOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc synced = makeOsc (table, sr, freq, WarpMode::sync, 0.5f);
+    WavetableOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
 
     REQUIRE (maxAbsDiff (synced, plain, 2048) > 0.1f);
 }
@@ -98,8 +98,8 @@ TEST_CASE ("bendPlus and sync produce different outputs", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc bent = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.7f);
-    UnisonOsc synced = makeOsc (table, sr, freq, WarpMode::sync, 0.7f);
+    WavetableOsc bent = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.7f);
+    WavetableOsc synced = makeOsc (table, sr, freq, WarpMode::sync, 0.7f);
 
     REQUIRE (maxAbsDiff (bent, synced, 2048) > 0.05f);
 }
@@ -110,13 +110,13 @@ TEST_CASE ("warp amount is clamped to 0..1", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc below = makeOsc (table, sr, freq, WarpMode::bendPlus, -5.0f);
-    UnisonOsc zero = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.0f);
+    WavetableOsc below = makeOsc (table, sr, freq, WarpMode::bendPlus, -5.0f);
+    WavetableOsc zero = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.0f);
     for (int i = 0; i < 512; ++i)
         REQUIRE (below.process() == Catch::Approx (zero.process()).margin (1.0e-5f));
 
-    UnisonOsc above = makeOsc (table, sr, freq, WarpMode::sync, 5.0f);
-    UnisonOsc one = makeOsc (table, sr, freq, WarpMode::sync, 1.0f);
+    WavetableOsc above = makeOsc (table, sr, freq, WarpMode::sync, 5.0f);
+    WavetableOsc one = makeOsc (table, sr, freq, WarpMode::sync, 1.0f);
     for (int i = 0; i < 512; ++i)
         REQUIRE (above.process() == Catch::Approx (one.process()).margin (1.0e-5f));
 }
@@ -124,7 +124,7 @@ TEST_CASE ("warp amount is clamped to 0..1", "[warp]")
 TEST_CASE ("warped output stays finite and bounded", "[warp]")
 {
     const auto table = Wavetable::sine();
-    UnisonOsc osc (table);
+    WavetableOsc osc (table);
     osc.setSampleRate (48000.0f);
     osc.setUnison (1, 0.0f);
     osc.setFrequency (880.0f);
@@ -145,7 +145,7 @@ TEST_CASE ("warped output stays finite and bounded", "[warp]")
 TEST_CASE ("warp plus unison stays finite", "[warp][unison]")
 {
     const auto table = Wavetable::sine();
-    UnisonOsc osc (table);
+    WavetableOsc osc (table);
     osc.setSampleRate (48000.0f);
     osc.setUnison (5, 15.0f);
     osc.setWarp (WarpMode::sync, 0.6f);
@@ -166,9 +166,9 @@ TEST_CASE ("independent oscs can use different warp settings", "[warp][multi-osc
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc osc1 = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
-    UnisonOsc osc2 = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.8f);
-    UnisonOsc osc3 = makeOsc (table, sr, freq, WarpMode::sync, 0.6f);
+    WavetableOsc osc1 = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc osc2 = makeOsc (table, sr, freq, WarpMode::bendPlus, 0.8f);
+    WavetableOsc osc3 = makeOsc (table, sr, freq, WarpMode::sync, 0.6f);
 
     float maxDiff12 = 0.0f;
     float maxDiff13 = 0.0f;
@@ -194,8 +194,8 @@ TEST_CASE ("live setWarp changes the waveform", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc osc = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
-    UnisonOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc osc = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
 
     // Match while off.
     for (int i = 0; i < 64; ++i)
@@ -216,13 +216,13 @@ TEST_CASE ("warp off after sync returns toward plain after reset", "[warp]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc osc = makeOsc (table, sr, freq, WarpMode::sync, 0.8f);
+    WavetableOsc osc = makeOsc (table, sr, freq, WarpMode::sync, 0.8f);
     for (int i = 0; i < 256; ++i) osc.process();
 
     osc.setWarp (WarpMode::off, 0.0f);
     osc.reset();
 
-    UnisonOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
+    WavetableOsc plain = makeOsc (table, sr, freq, WarpMode::off, 0.0f);
     for (int i = 0; i < 512; ++i)
         REQUIRE (osc.process() == Catch::Approx (plain.process()).margin (1.0e-5f));
 }
@@ -233,7 +233,7 @@ TEST_CASE ("bendPlus remaps frozen phase away from linear read", "[warp]")
     constexpr float sr = 48000.0f;
 
     // Land both at phase 0.25, freeze, then compare warped vs unwarped read.
-    UnisonOsc plain (table);
+    WavetableOsc plain (table);
     plain.setSampleRate (sr);
     plain.setUnison (1, 0.0f);
     plain.setWarp (WarpMode::off, 0.0f);
@@ -242,7 +242,7 @@ TEST_CASE ("bendPlus remaps frozen phase away from linear read", "[warp]")
     plain.process();
     plain.setFrequency (0.0f);
 
-    UnisonOsc bent (table);
+    WavetableOsc bent (table);
     bent.setSampleRate (sr);
     bent.setUnison (1, 0.0f);
     bent.setWarp (WarpMode::bendPlus, 0.9f);

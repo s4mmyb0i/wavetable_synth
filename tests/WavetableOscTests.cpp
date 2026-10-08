@@ -2,16 +2,16 @@
 #include <catch2/catch_approx.hpp>
 
 #include "dsp/Wavetable.h"
-#include "dsp/UnisonOsc.h"
+#include "dsp/WavetableOsc.h"
 
 #include <cmath>
 #include <algorithm>
 
 namespace
 {
-UnisonOsc makeMono (const Wavetable& table, float sr, float freq)
+WavetableOsc makeMono (const Wavetable& table, float sr, float freq)
 {
-    UnisonOsc osc (table);
+    WavetableOsc osc (table);
     osc.setSampleRate (sr);
     osc.setUnison (1, 0.0f);
     osc.setFrequency (freq);
@@ -23,7 +23,7 @@ UnisonOsc makeMono (const Wavetable& table, float sr, float freq)
 TEST_CASE ("unison count 1 advances one cycle in sr/freq samples", "[unison][osc]")
 {
     const auto table = Wavetable::sine();
-    UnisonOsc osc = makeMono (table, 44100.0f, 441.0f); // increment = 0.01 exactly
+    WavetableOsc osc = makeMono (table, 44100.0f, 441.0f); // increment = 0.01 exactly
 
     const float first = osc.process();
 
@@ -41,8 +41,8 @@ TEST_CASE ("unison count 1 detune is ignored", "[unison]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc withDetune (table);
-    UnisonOsc mono = makeMono (table, sr, freq);
+    WavetableOsc withDetune (table);
+    WavetableOsc mono = makeMono (table, sr, freq);
 
     withDetune.setSampleRate (sr);
     withDetune.setUnison (1, 12.0f);
@@ -60,8 +60,8 @@ TEST_CASE ("unison with zero detune equals mono regardless of count", "[unison]"
     constexpr float sr = 48000.0f;
     constexpr float freq = 220.0f;
 
-    UnisonOsc uni (table);
-    UnisonOsc mono = makeMono (table, sr, freq);
+    WavetableOsc uni (table);
+    WavetableOsc mono = makeMono (table, sr, freq);
 
     uni.setSampleRate (sr);
     uni.setUnison (5, 0.0f);
@@ -79,8 +79,8 @@ TEST_CASE ("unison with detune diverges from mono", "[unison]")
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc uni (table);
-    UnisonOsc mono = makeMono (table, sr, freq);
+    WavetableOsc uni (table);
+    WavetableOsc mono = makeMono (table, sr, freq);
 
     uni.setSampleRate (sr);
     uni.setUnison (5, 20.0f);
@@ -97,7 +97,7 @@ TEST_CASE ("unison with detune diverges from mono", "[unison]")
 TEST_CASE ("unison output stays finite and roughly bounded", "[unison]")
 {
     const auto table = Wavetable::sine();
-    UnisonOsc uni (table);
+    WavetableOsc uni (table);
     uni.setSampleRate (48000.0f);
     uni.setUnison (8, 25.0f);
     uni.setFrequency (880.0f);
@@ -114,7 +114,7 @@ TEST_CASE ("unison output stays finite and roughly bounded", "[unison]")
 TEST_CASE ("setUnison clamps count below 1 and above 8", "[unison]")
 {
     const auto table = Wavetable::sine();
-    UnisonOsc uni (table);
+    WavetableOsc uni (table);
     uni.setSampleRate (48000.0f);
     uni.setFrequency (440.0f);
 
@@ -138,7 +138,7 @@ TEST_CASE ("setTable switches waveform under unison", "[unison]")
     const auto saw = Wavetable::sawBandLimited (64);
 
     constexpr float sr = 48000.0f;
-    UnisonOsc uni (sine);
+    WavetableOsc uni (sine);
     uni.setSampleRate (sr);
     uni.setUnison (1, 0.0f);
 
@@ -156,16 +156,16 @@ TEST_CASE ("setTable switches waveform under unison", "[unison]")
     REQUIRE (fromSaw != Catch::Approx (fromSine).margin (1.0e-3f));
 }
 
-TEST_CASE ("independent UnisonOsc slots can use different unison settings", "[unison][multi-osc]")
+TEST_CASE ("independent WavetableOsc slots can use different unison settings", "[unison][multi-osc]")
 {
     const auto table = Wavetable::sine();
 
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc osc1 (table);
-    UnisonOsc osc2 (table);
-    UnisonOsc osc3 (table);
+    WavetableOsc osc1 (table);
+    WavetableOsc osc2 (table);
+    WavetableOsc osc3 (table);
 
     for (auto* o : {&osc1, &osc2, &osc3})
     {
@@ -199,7 +199,7 @@ TEST_CASE ("independent UnisonOsc slots can use different unison settings", "[un
 TEST_CASE ("reset returns unison voices to phase 0", "[unison]")
 {
     const auto table = Wavetable::sine();
-    UnisonOsc uni (table);
+    WavetableOsc uni (table);
     uni.setSampleRate (48000.0f);
     uni.setUnison (4, 12.0f);
     uni.setFrequency (440.0f);
@@ -209,7 +209,7 @@ TEST_CASE ("reset returns unison voices to phase 0", "[unison]")
     uni.reset();
     const float afterReset = uni.process();
 
-    UnisonOsc fresh (table);
+    WavetableOsc fresh (table);
     fresh.setSampleRate (48000.0f);
     fresh.setUnison (4, 12.0f);
     fresh.setFrequency (440.0f);

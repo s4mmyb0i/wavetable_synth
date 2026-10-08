@@ -13,10 +13,10 @@ enum class WarpMode
     sync
 };
 
-class UnisonOsc
+class WavetableOsc
 {
 public:
-    explicit UnisonOsc (const Wavetable& table);
+    explicit WavetableOsc (const Wavetable& table);
 
     void setSampleRate (float sampleRate);
     void setFrequency (float hz);

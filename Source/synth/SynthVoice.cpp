@@ -40,7 +40,7 @@ OscSource& SynthVoice::sourceForIndex (int oscIndex)
     }
 }
 
-UnisonOsc& SynthVoice::oscForIndex (int oscIndex)
+WavetableOsc& SynthVoice::oscForIndex (int oscIndex)
 {
     switch (oscIndex)
     {
@@ -50,7 +50,7 @@ UnisonOsc& SynthVoice::oscForIndex (int oscIndex)
     }
 }
 
-void SynthVoice::applySourceToOsc (UnisonOsc& osc, const OscSource& source, float frequencyHz)
+void SynthVoice::applySourceToOsc (WavetableOsc& osc, const OscSource& source, float frequencyHz)
 {
     if (source.mipBank != nullptr)
     {

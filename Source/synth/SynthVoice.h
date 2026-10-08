@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dsp/UnisonOsc.h"
+#include "dsp/WavetableOsc.h"
 #include "dsp/Envelope.h"
 #include "dsp/Filter.h"
 #include <juce_audio_basics/juce_audio_basics.h>
@@ -50,15 +50,15 @@ public:
 private:
     void applyOscFrequencies();
     void refreshOscTables();
-    void applySourceToOsc (UnisonOsc& osc, const OscSource& source, float frequencyHz);
+    void applySourceToOsc (WavetableOsc& osc, const OscSource& source, float frequencyHz);
 
     float frequencyForCents (float cents) const
     { return noteFrequencyHz_ * std::pow (2.0f, cents / 1200.0f); }
 
     OscSource& sourceForIndex (int oscIndex);
-    UnisonOsc& oscForIndex (int oscIndex);
+    WavetableOsc& oscForIndex (int oscIndex);
 
-    UnisonOsc osc1_, osc2_, osc3_;
+    WavetableOsc osc1_, osc2_, osc3_;
     OscSource osc1Source_, osc2Source_, osc3Source_;
 
     float osc1Level_ = 1.0f;

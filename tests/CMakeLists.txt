@@ -13,11 +13,11 @@ add_executable(WavetableTests
     EnvelopeTests.cpp
     FilterTests.cpp
     MultiOscTests.cpp
-    UnisonOscTests.cpp
+    WavetableOscTests.cpp
     WarpOscTests.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Wavetable.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableMipBank.cpp
-    ${CMAKE_SOURCE_DIR}/Source/dsp/UnisonOsc.cpp
+    ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableOsc.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Envelope.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Filter.cpp)
 

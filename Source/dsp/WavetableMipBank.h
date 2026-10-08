@@ -7,7 +7,7 @@
 // Several band-limited versions of one shape (mipmap).
 // Pick a level from frequency + sample rate so harmonics stay under Nyquist.
 //
-// UnisonOsc does NOT choose mips — it only reads whatever table you give it.
+// WavetableOsc does NOT choose mips — it only reads whatever table you give it.
 // SynthVoice (or the processor) calls select() then osc.setTable(...).
 class WavetableMipBank
 {

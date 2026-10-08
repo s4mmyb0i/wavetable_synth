@@ -1,9 +1,9 @@
-#include "dsp/UnisonOsc.h"
+#include "dsp/WavetableOsc.h"
 #include <algorithm>
 
-UnisonOsc::UnisonOsc (const Wavetable& table) : table_ (&table) {}
+WavetableOsc::WavetableOsc (const Wavetable& table) : table_ (&table) {}
 
-float UnisonOsc::spread (int i, int count)
+float WavetableOsc::spread (int i, int count)
 {
     if (count == 1)
         return 0.0f;
@@ -11,7 +11,7 @@ float UnisonOsc::spread (int i, int count)
         return -1.0f + 2.0f * (static_cast<float> (i) / static_cast<float> (count - 1));
 }
 
-void UnisonOsc::updateIncrements()
+void WavetableOsc::updateIncrements()
 {
     if (sampleRate_ < 0) return;
 
@@ -20,7 +20,7 @@ void UnisonOsc::updateIncrements()
                         centsToRatio (spread (i, unisonCount_) * unisonDetuneCents_) / sampleRate_;
 }
 
-float UnisonOsc::warpPhase (float phase01, float amount, WarpMode mode)
+float WavetableOsc::warpPhase (float phase01, float amount, WarpMode mode)
 {
     amount = std::clamp (amount, 0.0f, 1.0f);
     float p = phase01;
@@ -49,37 +49,37 @@ float UnisonOsc::warpPhase (float phase01, float amount, WarpMode mode)
     return p - std::floor (p);
 }
 
-void UnisonOsc::setSampleRate (float sampleRate)
+void WavetableOsc::setSampleRate (float sampleRate)
 {
     sampleRate_ = sampleRate;
     updateIncrements();
 }
 
-void UnisonOsc::setFrequency (float hz)
+void WavetableOsc::setFrequency (float hz)
 {
     baseFrequencyHz_ = hz;
     updateIncrements();
 }
 
-void UnisonOsc::setUnison (int count, float detuneCents)
+void WavetableOsc::setUnison (int count, float detuneCents)
 {
     unisonCount_ = std::clamp (count, 1, maxUnison);
     unisonDetuneCents_ = detuneCents;
     updateIncrements();
 }
 
-void UnisonOsc::setWarp (WarpMode mode, float amount)
+void WavetableOsc::setWarp (WarpMode mode, float amount)
 {
     warpMode_ = mode;
     warpAmount_ = std::clamp (amount, 0.0f, 1.0f);
 }
 
-void UnisonOsc::reset()
+void WavetableOsc::reset()
 {
     for (int i = 0; i < maxUnison; ++i) phase_[i] = 0.0f;
 }
 
-float UnisonOsc::process()
+float WavetableOsc::process()
 {
     float sum = 0;
     for (int i = 0; i < unisonCount_; ++i)

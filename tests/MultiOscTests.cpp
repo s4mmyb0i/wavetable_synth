@@ -2,7 +2,7 @@
 #include <catch2/catch_approx.hpp>
 
 #include "dsp/Wavetable.h"
-#include "dsp/UnisonOsc.h"
+#include "dsp/WavetableOsc.h"
 #include "dsp/WavetableMipBank.h"
 
 #include <cmath>
@@ -16,8 +16,8 @@ TEST_CASE ("mixed oscillators weight each table by level", "[multi-osc]")
     const auto sine = Wavetable::sine();
     const auto saw = Wavetable::sawBandLimited (64);
 
-    UnisonOsc osc1 (sine);
-    UnisonOsc osc2 (saw);
+    WavetableOsc osc1 (sine);
+    WavetableOsc osc2 (saw);
     osc1.setSampleRate (48000.0f);
     osc2.setSampleRate (48000.0f);
     osc1.setUnison (1, 0.0f);
@@ -49,8 +49,8 @@ TEST_CASE ("mixed oscillators weight each table by level", "[multi-osc]")
 TEST_CASE ("detuned oscillators diverge in phase", "[multi-osc]")
 {
     const auto table = Wavetable::sine();
-    UnisonOsc oscA (table);
-    UnisonOsc oscB (table);
+    WavetableOsc oscA (table);
+    WavetableOsc oscB (table);
 
     constexpr float sr = 48000.0f;
     oscA.setSampleRate (sr);
@@ -82,8 +82,8 @@ TEST_CASE ("independent tables: sine vs square mip selection", "[multi-osc][mip]
     constexpr float sr = 48000.0f;
     constexpr float freq = 440.0f;
 
-    UnisonOsc oscSine (sine);
-    UnisonOsc oscSquare (squareBank.select (freq, sr));
+    WavetableOsc oscSine (sine);
+    WavetableOsc oscSquare (squareBank.select (freq, sr));
     oscSine.setSampleRate (sr);
     oscSquare.setSampleRate (sr);
     oscSine.setUnison (1, 0.0f);
