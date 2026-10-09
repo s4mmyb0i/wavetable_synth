@@ -1,10 +1,10 @@
 #pragma once
 
 #include "dsp/Wavetable.h"
+#include "dsp/WavetableBank.h"
 
+#include <algorithm>
 #include <cmath>
-
-class Wavetable;
 
 enum class WarpMode
 {
@@ -23,13 +23,20 @@ public:
     void setUnison (int count, float detuneCents);
     void setWarp (WarpMode mode, float amount);
 
-    void setTable (const Wavetable& table) { table_ = &table; }
+    // Single-cycle path (sine / triangle / mip select). Clears any bank.
+    void setTable (const Wavetable& table);
+
+    // Multi-frame morph path. Clears single-table mode.
+    void setBank (const WavetableBank& bank);
+    void setPosition (float position01);
 
     void reset();
     float process();
 
 private:
     const Wavetable* table_ = nullptr;
+    const WavetableBank* bank_ = nullptr;
+    float position_ = 0.0f;
 
     float warpPhase (float phase01, float amount, WarpMode mode);
 

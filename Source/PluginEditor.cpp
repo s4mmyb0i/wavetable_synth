@@ -8,8 +8,11 @@ constexpr int kHeaderH = 44;
 constexpr int kSectionTitleH = 22;
 constexpr int kLabelH = 18;
 constexpr int kTextBoxH = 18;
-constexpr int kComboH = 26;
+constexpr int kSwitchH = 26;
 constexpr int kGap = 10;
+
+// Must match ParamIDs / ParameterLayout waveChoices order.
+constexpr int kMorphWaveIndex = 4;
 } // namespace
 
 WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
@@ -30,25 +33,28 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     setupRotary (osc1UnisonCountSlider_, osc1UnisonCountLabel_, "Unison");
     setupRotary (osc1UnisonDetuneSlider_, osc1UnisonDetuneLabel_, "Spread");
     setupRotary (osc1WarpAmountSlider_, osc1WarpAmountLabel_, "Warp");
+    setupRotary (osc1PositionSlider_, osc1PositionLabel_, "Pos");
 
     setupRotary (osc2LevelSlider_, osc2LevelLabel_, "Level");
     setupRotary (osc2DetuneSlider_, osc2DetuneLabel_, "Detune");
     setupRotary (osc2UnisonCountSlider_, osc2UnisonCountLabel_, "Unison");
     setupRotary (osc2UnisonDetuneSlider_, osc2UnisonDetuneLabel_, "Spread");
     setupRotary (osc2WarpAmountSlider_, osc2WarpAmountLabel_, "Warp");
+    setupRotary (osc2PositionSlider_, osc2PositionLabel_, "Pos");
 
     setupRotary (osc3LevelSlider_, osc3LevelLabel_, "Level");
     setupRotary (osc3DetuneSlider_, osc3DetuneLabel_, "Detune");
     setupRotary (osc3UnisonCountSlider_, osc3UnisonCountLabel_, "Unison");
     setupRotary (osc3UnisonDetuneSlider_, osc3UnisonDetuneLabel_, "Spread");
     setupRotary (osc3WarpAmountSlider_, osc3WarpAmountLabel_, "Warp");
+    setupRotary (osc3PositionSlider_, osc3PositionLabel_, "Pos");
 
-    setupWaveBox (osc1WaveBox_);
-    setupWaveBox (osc2WaveBox_);
-    setupWaveBox (osc3WaveBox_);
-    setupWarpBox (osc1WarpBox_);
-    setupWarpBox (osc2WarpBox_);
-    setupWarpBox (osc3WarpBox_);
+    addAndMakeVisible (osc1WaveKnob_);
+    addAndMakeVisible (osc2WaveKnob_);
+    addAndMakeVisible (osc3WaveKnob_);
+    addAndMakeVisible (osc1WarpSwitch_);
+    addAndMakeVisible (osc2WarpSwitch_);
+    addAndMakeVisible (osc3WarpSwitch_);
 
     setupRotary (cutoffSlider_, cutoffLabel_, "Cutoff");
     setupRotary (resonanceSlider_, resonanceLabel_, "Resonance");
@@ -60,19 +66,13 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
 
     auto& apvts = processorRef.getAPVTS();
 
-    osc1WaveAttachment_ =
-        std::make_unique<ComboBoxAttachment> (apvts, ParamIDs::osc1Wave, osc1WaveBox_);
-    osc2WaveAttachment_ =
-        std::make_unique<ComboBoxAttachment> (apvts, ParamIDs::osc2Wave, osc2WaveBox_);
-    osc3WaveAttachment_ =
-        std::make_unique<ComboBoxAttachment> (apvts, ParamIDs::osc3Wave, osc3WaveBox_);
+    osc1WaveKnob_.attach (apvts, ParamIDs::osc1Wave);
+    osc2WaveKnob_.attach (apvts, ParamIDs::osc2Wave);
+    osc3WaveKnob_.attach (apvts, ParamIDs::osc3Wave);
 
-    osc1WarpAttachment_ =
-        std::make_unique<ComboBoxAttachment> (apvts, ParamIDs::osc1WarpMode, osc1WarpBox_);
-    osc2WarpAttachment_ =
-        std::make_unique<ComboBoxAttachment> (apvts, ParamIDs::osc2WarpMode, osc2WarpBox_);
-    osc3WarpAttachment_ =
-        std::make_unique<ComboBoxAttachment> (apvts, ParamIDs::osc3WarpMode, osc3WarpBox_);
+    osc1WarpSwitch_.attach (apvts, ParamIDs::osc1WarpMode);
+    osc2WarpSwitch_.attach (apvts, ParamIDs::osc2WarpMode);
+    osc3WarpSwitch_.attach (apvts, ParamIDs::osc3WarpMode);
 
     osc1LevelAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::osc1Level, osc1LevelSlider_);
@@ -105,6 +105,13 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     osc3WarpAmountAttachment_ = std::make_unique<SliderAttachment> (
         apvts, ParamIDs::osc3WarpAmount, osc3WarpAmountSlider_);
 
+    osc1PositionAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc1Position, osc1PositionSlider_);
+    osc2PositionAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc2Position, osc2PositionSlider_);
+    osc3PositionAttachment_ = std::make_unique<SliderAttachment> (
+        apvts, ParamIDs::osc3Position, osc3PositionSlider_);
+
     cutoffAttachment_ = std::make_unique<SliderAttachment> (apvts, ParamIDs::cutoff, cutoffSlider_);
     resonanceAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::resonance, resonanceSlider_);
@@ -115,6 +122,23 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
         std::make_unique<SliderAttachment> (apvts, ParamIDs::sustain, sustainSlider_);
     releaseAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::release, releaseSlider_);
+
+    osc1WaveKnob_.getSlider().onValueChange = [this]
+    {
+        osc1WaveKnob_.repaint();
+        updatePositionEnabled (osc1WaveKnob_.getSlider(), osc1PositionSlider_, osc1PositionLabel_);
+    };
+    osc2WaveKnob_.getSlider().onValueChange = [this]
+    {
+        osc2WaveKnob_.repaint();
+        updatePositionEnabled (osc2WaveKnob_.getSlider(), osc2PositionSlider_, osc2PositionLabel_);
+    };
+    osc3WaveKnob_.getSlider().onValueChange = [this]
+    {
+        osc3WaveKnob_.repaint();
+        updatePositionEnabled (osc3WaveKnob_.getSlider(), osc3PositionSlider_, osc3PositionLabel_);
+    };
+    refreshAllPositionEnabled();
 
     keyboard_.setAvailableRange (36, 96); // C2–C7
     keyboard_.setOctaveForMiddleC (4);
@@ -166,16 +190,22 @@ void WavetableSynthAudioProcessorEditor::setupVertical (juce::Slider& slider, ju
     addAndMakeVisible (label);
 }
 
-void WavetableSynthAudioProcessorEditor::setupWaveBox (juce::ComboBox& box)
+void WavetableSynthAudioProcessorEditor::updatePositionEnabled (juce::Slider& waveSlider,
+                                                                juce::Slider& positionSlider,
+                                                                juce::Label& positionLabel)
 {
-    box.addItemList (juce::StringArray {"Sine", "Saw", "Square", "Triangle"}, 1);
-    addAndMakeVisible (box);
+    const bool morph = juce::roundToInt (waveSlider.getValue()) == kMorphWaveIndex;
+    positionSlider.setEnabled (morph);
+    const float alpha = morph ? 1.0f : 0.35f;
+    positionSlider.setAlpha (alpha);
+    positionLabel.setAlpha (alpha);
 }
 
-void WavetableSynthAudioProcessorEditor::setupWarpBox (juce::ComboBox& box)
+void WavetableSynthAudioProcessorEditor::refreshAllPositionEnabled()
 {
-    box.addItemList (juce::StringArray {"Off", "Bend+", "Sync"}, 1);
-    addAndMakeVisible (box);
+    updatePositionEnabled (osc1WaveKnob_.getSlider(), osc1PositionSlider_, osc1PositionLabel_);
+    updatePositionEnabled (osc2WaveKnob_.getSlider(), osc2PositionSlider_, osc2PositionLabel_);
+    updatePositionEnabled (osc3WaveKnob_.getSlider(), osc3PositionSlider_, osc3PositionLabel_);
 }
 
 void WavetableSynthAudioProcessorEditor::layoutKnobColumn (juce::Rectangle<int> column,
@@ -194,24 +224,25 @@ void WavetableSynthAudioProcessorEditor::layoutVerticalColumn (juce::Rectangle<i
 }
 
 void WavetableSynthAudioProcessorEditor::layoutOscPanel (
-    juce::Rectangle<int> bounds, juce::ComboBox& waveBox, juce::ComboBox& warpBox,
+    juce::Rectangle<int> bounds, WaveSelectKnob& waveKnob, WarpModeSwitch& warpSwitch,
     juce::Slider& level, juce::Label& levelLabel, juce::Slider* detune, juce::Label* detuneLabel,
     juce::Slider& uniCount, juce::Label& uniCountLabel, juce::Slider& uniDetune,
-    juce::Label& uniDetuneLabel, juce::Slider& warpAmount, juce::Label& warpAmountLabel)
+    juce::Label& uniDetuneLabel, juce::Slider& warpAmount, juce::Label& warpAmountLabel,
+    juce::Slider& position, juce::Label& positionLabel)
 {
     auto inner = bounds.reduced (10);
     inner.removeFromTop (kSectionTitleH);
 
-    auto comboRow = inner.removeFromTop (kComboH + 6);
-    auto waveArea = comboRow.removeFromLeft (comboRow.getWidth() / 2).reduced (2, 0);
-    auto warpArea = comboRow.reduced (2, 0);
-    waveBox.setBounds (waveArea.withSizeKeepingCentre (juce::jmin (waveArea.getWidth(), 130),
-                                                       kComboH));
-    warpBox.setBounds (warpArea.withSizeKeepingCentre (juce::jmin (warpArea.getWidth(), 110),
-                                                       kComboH));
+    auto warpRow = inner.removeFromTop (kSwitchH + 6);
+    const int warpW = juce::jmin (warpRow.getWidth() - 8, 160);
+    warpSwitch.setBounds (warpRow.withSizeKeepingCentre (warpW, kSwitchH));
 
-    // Top: Level | Detune (optional) | Warp amount
-    // Bottom: Unison | Spread
+    // Wave knob gets a large square cell on the left; remaining knobs stack in two rows.
+    const int waveSize = juce::jmin (inner.getHeight(), juce::roundToInt (inner.getWidth() * 0.42f));
+    auto waveArea = inner.removeFromLeft (waveSize);
+    inner.removeFromLeft (6);
+    waveKnob.setBounds (waveArea.withSizeKeepingCentre (waveSize, waveSize));
+
     auto topRow = inner.removeFromTop (inner.getHeight() / 2);
     auto bottomRow = inner;
 
@@ -223,9 +254,10 @@ void WavetableSynthAudioProcessorEditor::layoutOscPanel (
         layoutKnobColumn (topRow.removeFromLeft (topW), *detune, *detuneLabel);
     layoutKnobColumn (topRow, warpAmount, warpAmountLabel);
 
-    const int botW = bottomRow.getWidth() / 2;
+    const int botW = bottomRow.getWidth() / 3;
     layoutKnobColumn (bottomRow.removeFromLeft (botW), uniCount, uniCountLabel);
-    layoutKnobColumn (bottomRow, uniDetune, uniDetuneLabel);
+    layoutKnobColumn (bottomRow.removeFromLeft (botW), uniDetune, uniDetuneLabel);
+    layoutKnobColumn (bottomRow, position, positionLabel);
 }
 
 void WavetableSynthAudioProcessorEditor::paintSection (juce::Graphics& g,
@@ -296,18 +328,21 @@ void WavetableSynthAudioProcessorEditor::resized()
     bottom.removeFromLeft (kGap);
     envSectionBounds_ = bottom;
 
-    layoutOscPanel (osc1SectionBounds_, osc1WaveBox_, osc1WarpBox_, osc1LevelSlider_,
+    layoutOscPanel (osc1SectionBounds_, osc1WaveKnob_, osc1WarpSwitch_, osc1LevelSlider_,
                     osc1LevelLabel_, nullptr, nullptr, osc1UnisonCountSlider_,
                     osc1UnisonCountLabel_, osc1UnisonDetuneSlider_, osc1UnisonDetuneLabel_,
-                    osc1WarpAmountSlider_, osc1WarpAmountLabel_);
-    layoutOscPanel (osc2SectionBounds_, osc2WaveBox_, osc2WarpBox_, osc2LevelSlider_,
+                    osc1WarpAmountSlider_, osc1WarpAmountLabel_, osc1PositionSlider_,
+                    osc1PositionLabel_);
+    layoutOscPanel (osc2SectionBounds_, osc2WaveKnob_, osc2WarpSwitch_, osc2LevelSlider_,
                     osc2LevelLabel_, &osc2DetuneSlider_, &osc2DetuneLabel_, osc2UnisonCountSlider_,
                     osc2UnisonCountLabel_, osc2UnisonDetuneSlider_, osc2UnisonDetuneLabel_,
-                    osc2WarpAmountSlider_, osc2WarpAmountLabel_);
-    layoutOscPanel (osc3SectionBounds_, osc3WaveBox_, osc3WarpBox_, osc3LevelSlider_,
+                    osc2WarpAmountSlider_, osc2WarpAmountLabel_, osc2PositionSlider_,
+                    osc2PositionLabel_);
+    layoutOscPanel (osc3SectionBounds_, osc3WaveKnob_, osc3WarpSwitch_, osc3LevelSlider_,
                     osc3LevelLabel_, &osc3DetuneSlider_, &osc3DetuneLabel_, osc3UnisonCountSlider_,
                     osc3UnisonCountLabel_, osc3UnisonDetuneSlider_, osc3UnisonDetuneLabel_,
-                    osc3WarpAmountSlider_, osc3WarpAmountLabel_);
+                    osc3WarpAmountSlider_, osc3WarpAmountLabel_, osc3PositionSlider_,
+                    osc3PositionLabel_);
 
     {
         auto inner = filterSectionBounds_.reduced (10);

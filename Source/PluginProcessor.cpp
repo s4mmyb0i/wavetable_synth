@@ -88,12 +88,13 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
         static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc3UnisonCount)->load());
     const float osc3UnisonDetune = apvts_.getRawParameterValue (ParamIDs::osc3UnisonDetune)->load();
 
-    // Resolve each osc's wave choice → fixed table and/or mip bank (exactly one used).
-    const auto resolveWave =
-        [this] (int waveIndex, const Wavetable*& table, const WavetableMipBank*& mipBank)
+    // Resolve wave choice → exactly one of: table, mip bank, or morph bank.
+    const auto resolveWave = [this] (int waveIndex, const Wavetable*& table,
+                                     const WavetableMipBank*& mipBank, const WavetableBank*& bank)
     {
         table = &sineTable_;
         mipBank = nullptr;
+        bank = nullptr;
 
         switch (waveIndex)
         {
@@ -106,6 +107,10 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             mipBank = &squareMipBank_;
             break;
         case 3: table = &triangleTable_; break;
+        case 4:
+            table = nullptr;
+            bank = &morphBank_;
+            break;
         default: break; // sine
         }
     };
@@ -121,6 +126,10 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
         static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc3WarpMode)->load());
     const float osc3WarpAmount = apvts_.getRawParameterValue (ParamIDs::osc3WarpAmount)->load();
 
+    const float osc1Position = apvts_.getRawParameterValue (ParamIDs::osc1Position)->load();
+    const float osc2Position = apvts_.getRawParameterValue (ParamIDs::osc2Position)->load();
+    const float osc3Position = apvts_.getRawParameterValue (ParamIDs::osc3Position)->load();
+
     const int osc1Wave =
         static_cast<int> (apvts_.getRawParameterValue (ParamIDs::osc1Wave)->load());
     const int osc2Wave =
@@ -134,10 +143,13 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     const WavetableMipBank* osc1Mip = nullptr;
     const WavetableMipBank* osc2Mip = nullptr;
     const WavetableMipBank* osc3Mip = nullptr;
+    const WavetableBank* osc1Bank = nullptr;
+    const WavetableBank* osc2Bank = nullptr;
+    const WavetableBank* osc3Bank = nullptr;
 
-    resolveWave (osc1Wave, osc1Table, osc1Mip);
-    resolveWave (osc2Wave, osc2Table, osc2Mip);
-    resolveWave (osc3Wave, osc3Table, osc3Mip);
+    resolveWave (osc1Wave, osc1Table, osc1Mip, osc1Bank);
+    resolveWave (osc2Wave, osc2Table, osc2Mip, osc2Bank);
+    resolveWave (osc3Wave, osc3Table, osc3Mip, osc3Bank);
 
     // Filter
     const float cutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
@@ -153,9 +165,13 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     for (int i = 0; i < synth_.getNumVoices(); ++i)
         if (SynthVoice* voice = dynamic_cast<SynthVoice*> (synth_.getVoice (i)))
         {
-            voice->setOscWave (0, osc1Table, osc1Mip);
-            voice->setOscWave (1, osc2Table, osc2Mip);
-            voice->setOscWave (2, osc3Table, osc3Mip);
+            voice->setOscWave (0, osc1Table, osc1Mip, osc1Bank);
+            voice->setOscWave (1, osc2Table, osc2Mip, osc2Bank);
+            voice->setOscWave (2, osc3Table, osc3Mip, osc3Bank);
+
+            voice->setOscPosition (0, osc1Position);
+            voice->setOscPosition (1, osc2Position);
+            voice->setOscPosition (2, osc3Position);
 
             voice->setOscWarp (0, static_cast<WarpMode> (osc1WarpModeIdx), osc1WarpAmount);
             voice->setOscWarp (1, static_cast<WarpMode> (osc2WarpModeIdx), osc2WarpAmount);

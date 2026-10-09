@@ -4,7 +4,7 @@
 namespace
 {
 juce::StringArray waveChoices()
-{ return juce::StringArray {"Sine", "Saw", "Square", "Triangle"}; }
+{ return juce::StringArray {"Sine", "Saw", "Square", "Triangle", "Morph"}; }
 
 juce::StringArray warpChoices()
 { return juce::StringArray {"Off", "Bend+", "Sync"}; } // matches WarpMode order
@@ -54,13 +54,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::ParameterID {ParamIDs::osc3UnisonDetune, 1}, "Osc 3 Uni Detune",
         juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f));
 
-    // Per-osc wavetype
+    // Per-osc wavetype (4 = Morph bank)
     layout.add (std::make_unique<juce::AudioParameterChoice> (
-        juce::ParameterID {ParamIDs::osc1Wave, 1}, "Osc 1 Wave", waveChoices(), 1)); // Saw
+        juce::ParameterID {ParamIDs::osc1Wave, 1}, "Osc 1 Wave", waveChoices(), 4)); // Morph
     layout.add (std::make_unique<juce::AudioParameterChoice> (
         juce::ParameterID {ParamIDs::osc2Wave, 1}, "Osc 2 Wave", waveChoices(), 2)); // Square
     layout.add (std::make_unique<juce::AudioParameterChoice> (
         juce::ParameterID {ParamIDs::osc3Wave, 1}, "Osc 3 Wave", waveChoices(), 0)); // Sine
+
+    // Per-osc wavetable position
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc1Position, 1}, "Osc 1 Position",
+        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc2Position, 1}, "Osc 2 Position",
+        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc3Position, 1}, "Osc 3 Position",
+        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
 
     // Per-osc warp
     layout.add (std::make_unique<juce::AudioParameterChoice> (

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/Wavetable.h"
+#include "dsp/WavetableBank.h"
 #include "dsp/WavetableMipBank.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 
@@ -48,6 +49,8 @@ private:
 
     WavetableMipBank sawMipBank_;
     WavetableMipBank squareMipBank_;
+
+    WavetableBank morphBank_ = WavetableBank::makeBasicMorph();
 
     juce::AudioProcessorValueTreeState apvts_;
     juce::Synthesiser synth_;

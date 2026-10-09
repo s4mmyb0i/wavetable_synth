@@ -12,12 +12,17 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+
+## October 9, 2026
+
+- Added wavetable position and morph between sine, triangle, saw waves
+- TODO: Add visuals for each osc
+- TODO: Add per osc adsr including visual - perhaps make it interactive if able
+- TODO: Add features like mod matrix, user generated tables, pan per osc, noise generator
+
 ## October 7, 2026
 
 - Added warp per osc
-- TODO: Add visuals for each osc
-- TODO: Add per osc adsr including visual - perhaps make it interactive if able
-- TODO: Add features like wavetable position, mod matrix
 
 ## October 4, 2026
 

@@ -1,6 +1,7 @@
 #include "synth/SynthVoice.h"
 #include "synth/SynthSound.h"
 #include "dsp/Wavetable.h"
+#include "dsp/WavetableBank.h"
 #include "dsp/WavetableMipBank.h"
 #include "dsp/Envelope.h"
 
@@ -52,6 +53,12 @@ WavetableOsc& SynthVoice::oscForIndex (int oscIndex)
 
 void SynthVoice::applySourceToOsc (WavetableOsc& osc, const OscSource& source, float frequencyHz)
 {
+    if (source.bank != nullptr)
+    {
+        osc.setBank (*source.bank);
+        return;
+    }
+
     if (source.mipBank != nullptr)
     {
         const double sr = getSampleRate();
@@ -70,11 +77,13 @@ void SynthVoice::refreshOscTables()
     applySourceToOsc (osc3_, osc3Source_, frequencyForCents (osc3Detune_));
 }
 
-void SynthVoice::setOscWave (int oscIndex, const Wavetable* table, const WavetableMipBank* mipBank)
+void SynthVoice::setOscWave (int oscIndex, const Wavetable* table, const WavetableMipBank* mipBank,
+                             const WavetableBank* bank)
 {
     auto& source = sourceForIndex (oscIndex);
     source.table = table;
     source.mipBank = mipBank;
+    source.bank = bank;
 
     float freq = noteFrequencyHz_;
     if (oscIndex == 1)
@@ -84,6 +93,9 @@ void SynthVoice::setOscWave (int oscIndex, const Wavetable* table, const Wavetab
 
     applySourceToOsc (oscForIndex (oscIndex), source, freq);
 }
+
+void SynthVoice::setOscPosition (int oscIndex, float position01)
+{ oscForIndex (oscIndex).setPosition (position01); }
 
 void SynthVoice::applyOscFrequencies()
 {

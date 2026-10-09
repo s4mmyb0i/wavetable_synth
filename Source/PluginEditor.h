@@ -3,6 +3,8 @@
 #include "PluginProcessor.h"
 #include "juce_audio_utils/juce_audio_utils.h"
 #include "ui/SynthLookAndFeel.h"
+#include "ui/WaveSelectKnob.h"
+#include "ui/WarpModeSwitch.h"
 
 class WavetableSynthAudioProcessorEditor final : public juce::AudioProcessorEditor
 {
@@ -15,22 +17,23 @@ public:
 
 private:
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
-    using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
 
     void setupRotary (juce::Slider& slider, juce::Label& label, const juce::String& name);
     void setupVertical (juce::Slider& slider, juce::Label& label, const juce::String& name);
-    void setupWaveBox (juce::ComboBox& box);
-    void setupWarpBox (juce::ComboBox& box);
     void layoutKnobColumn (juce::Rectangle<int> column, juce::Slider& slider, juce::Label& label);
     void layoutVerticalColumn (juce::Rectangle<int> column, juce::Slider& slider,
                                juce::Label& label);
-    void layoutOscPanel (juce::Rectangle<int> bounds, juce::ComboBox& waveBox,
-                         juce::ComboBox& warpBox, juce::Slider& level, juce::Label& levelLabel,
+    void layoutOscPanel (juce::Rectangle<int> bounds, WaveSelectKnob& waveKnob,
+                         WarpModeSwitch& warpSwitch, juce::Slider& level, juce::Label& levelLabel,
                          juce::Slider* detune, juce::Label* detuneLabel, juce::Slider& uniCount,
                          juce::Label& uniCountLabel, juce::Slider& uniDetune,
                          juce::Label& uniDetuneLabel, juce::Slider& warpAmount,
-                         juce::Label& warpAmountLabel);
+                         juce::Label& warpAmountLabel, juce::Slider& position,
+                         juce::Label& positionLabel);
     void paintSection (juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& title);
+    void updatePositionEnabled (juce::Slider& waveSlider, juce::Slider& positionSlider,
+                                juce::Label& positionLabel);
+    void refreshAllPositionEnabled();
 
     WavetableSynthAudioProcessor& processorRef;
     SynthLookAndFeel lookAndFeel_;
@@ -40,30 +43,32 @@ private:
     // Osc 1
     juce::Slider osc1LevelSlider_;
     juce::Label osc1LevelLabel_;
+    WaveSelectKnob osc1WaveKnob_;
+    WarpModeSwitch osc1WarpSwitch_;
     juce::Slider osc1UnisonCountSlider_, osc1UnisonDetuneSlider_, osc1WarpAmountSlider_;
+    juce::Slider osc1PositionSlider_;
     juce::Label osc1UnisonCountLabel_, osc1UnisonDetuneLabel_, osc1WarpAmountLabel_;
-    juce::ComboBox osc1WaveBox_, osc1WarpBox_;
+    juce::Label osc1PositionLabel_;
 
     // Osc 2
     juce::Slider osc2LevelSlider_, osc2DetuneSlider_;
     juce::Label osc2LevelLabel_, osc2DetuneLabel_;
+    WaveSelectKnob osc2WaveKnob_;
+    WarpModeSwitch osc2WarpSwitch_;
     juce::Slider osc2UnisonCountSlider_, osc2UnisonDetuneSlider_, osc2WarpAmountSlider_;
+    juce::Slider osc2PositionSlider_;
     juce::Label osc2UnisonCountLabel_, osc2UnisonDetuneLabel_, osc2WarpAmountLabel_;
-    juce::ComboBox osc2WaveBox_, osc2WarpBox_;
+    juce::Label osc2PositionLabel_;
 
     // Osc 3
     juce::Slider osc3LevelSlider_, osc3DetuneSlider_;
     juce::Label osc3LevelLabel_, osc3DetuneLabel_;
+    WaveSelectKnob osc3WaveKnob_;
+    WarpModeSwitch osc3WarpSwitch_;
     juce::Slider osc3UnisonCountSlider_, osc3UnisonDetuneSlider_, osc3WarpAmountSlider_;
+    juce::Slider osc3PositionSlider_;
     juce::Label osc3UnisonCountLabel_, osc3UnisonDetuneLabel_, osc3WarpAmountLabel_;
-    juce::ComboBox osc3WaveBox_, osc3WarpBox_;
-
-    std::unique_ptr<ComboBoxAttachment> osc1WaveAttachment_;
-    std::unique_ptr<ComboBoxAttachment> osc2WaveAttachment_;
-    std::unique_ptr<ComboBoxAttachment> osc3WaveAttachment_;
-    std::unique_ptr<ComboBoxAttachment> osc1WarpAttachment_;
-    std::unique_ptr<ComboBoxAttachment> osc2WarpAttachment_;
-    std::unique_ptr<ComboBoxAttachment> osc3WarpAttachment_;
+    juce::Label osc3PositionLabel_;
 
     std::unique_ptr<SliderAttachment> osc1LevelAttachment_;
     std::unique_ptr<SliderAttachment> osc2LevelAttachment_;
@@ -79,6 +84,9 @@ private:
     std::unique_ptr<SliderAttachment> osc1WarpAmountAttachment_;
     std::unique_ptr<SliderAttachment> osc2WarpAmountAttachment_;
     std::unique_ptr<SliderAttachment> osc3WarpAmountAttachment_;
+    std::unique_ptr<SliderAttachment> osc1PositionAttachment_;
+    std::unique_ptr<SliderAttachment> osc2PositionAttachment_;
+    std::unique_ptr<SliderAttachment> osc3PositionAttachment_;
 
     // Filter
     juce::Slider cutoffSlider_, resonanceSlider_;

@@ -1,7 +1,21 @@
 #include "dsp/WavetableOsc.h"
-#include <algorithm>
 
 WavetableOsc::WavetableOsc (const Wavetable& table) : table_ (&table) {}
+
+void WavetableOsc::setTable (const Wavetable& table)
+{
+    table_ = &table;
+    bank_ = nullptr;
+}
+
+void WavetableOsc::setBank (const WavetableBank& bank)
+{
+    bank_ = &bank;
+    table_ = nullptr;
+}
+
+void WavetableOsc::setPosition (float position01)
+{ position_ = std::clamp (position01, 0.0f, 1.0f); }
 
 float WavetableOsc::spread (int i, int count)
 {
@@ -85,7 +99,12 @@ float WavetableOsc::process()
     for (int i = 0; i < unisonCount_; ++i)
     {
         const float readPhase = warpPhase (phase_[i], warpAmount_, warpMode_);
-        sum += table_->lookup (readPhase);
+
+        if (bank_ != nullptr)
+            sum += bank_->lookup (position_, readPhase);
+        else if (table_ != nullptr)
+            sum += table_->lookup (readPhase);
+
         phase_[i] += increment_[i];
         phase_[i] -= std::floor (phase_[i]);
     }

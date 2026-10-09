@@ -31,14 +31,42 @@ void SynthLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int wi
                                          float sliderPos, float rotaryStartAngle,
                                          float rotaryEndAngle, juce::Slider& slider)
 {
-    juce::ignoreUnused (slider);
-
-    const auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat().reduced (6.0f);
+    const bool waveKnob = static_cast<bool> (slider.getProperties()["waveKnob"]);
+    // Wave knob fills its component for circular hit-testing; inset the dial for icons.
+    const float waveInset = juce::jmax (18.0f, 0.28f * static_cast<float> (juce::jmin (width, height)));
+    const auto bounds = juce::Rectangle<int> (x, y, width, height).toFloat().reduced (
+        waveKnob ? waveInset : 6.0f);
     const auto radius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f;
     const auto centre = bounds.getCentre();
     const auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    const auto lineW = juce::jmax (2.0f, radius * 0.12f);
+    const auto lineW = juce::jmax (2.0f, radius * (waveKnob ? 0.10f : 0.12f));
     const auto arcRadius = radius - lineW * 0.5f;
+
+    if (waveKnob)
+    {
+        // Full ring + discrete ticks; needle points at the selected wave.
+        g.setColour (track);
+        g.drawEllipse (centre.x - arcRadius, centre.y - arcRadius, arcRadius * 2.0f,
+                       arcRadius * 2.0f, lineW);
+
+        constexpr int numTicks = 5;
+        for (int i = 0; i < numTicks; ++i)
+        {
+            const float t = static_cast<float> (i) / static_cast<float> (numTicks - 1);
+            const float angle = rotaryStartAngle + t * (rotaryEndAngle - rotaryStartAngle);
+            const auto outer = centre.getPointOnCircumference (arcRadius + 1.0f, angle);
+            const auto inner = centre.getPointOnCircumference (arcRadius - lineW * 1.8f, angle);
+            g.setColour (textMuted);
+            g.drawLine ({inner, outer}, 1.5f);
+        }
+
+        const auto tip = centre.getPointOnCircumference (arcRadius - lineW, toAngle);
+        g.setColour (slider.isEnabled() ? accent : textMuted);
+        g.drawLine ({centre, tip}, 2.0f);
+        g.setColour (textPrimary);
+        g.fillEllipse (juce::Rectangle<float> (6.0f, 6.0f).withCentre (centre));
+        return;
+    }
 
     juce::Path backgroundArc;
     backgroundArc.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle,
@@ -57,7 +85,6 @@ void SynthLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int wi
                                                       juce::PathStrokeType::rounded));
     }
 
-    // Thumb
     const auto thumbRadius = lineW * 1.1f;
     const auto thumbPoint = centre.getPointOnCircumference (arcRadius, toAngle);
     g.setColour (textPrimary);

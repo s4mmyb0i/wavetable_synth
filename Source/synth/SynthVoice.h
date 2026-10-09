@@ -7,11 +7,13 @@
 
 class Wavetable;
 class WavetableMipBank;
+class WavetableBank;
 
 struct OscSource
 {
     const Wavetable* table = nullptr;          // sine / triangle
     const WavetableMipBank* mipBank = nullptr; // saw / square
+    const WavetableBank* bank = nullptr;       // morph bank (position)
 };
 
 class SynthVoice final : public juce::SynthesiserVoice
@@ -32,8 +34,11 @@ public:
     void setCurrentPlaybackSampleRate (double newRate) override;
 
     // oscIndex: 0 = osc1, 1 = osc2, 2 = osc3.
-    // Pass either table OR mipBank (the other nullptr).
-    void setOscWave (int oscIndex, const Wavetable* table, const WavetableMipBank* mipBank);
+    // Pass exactly one of table / mipBank / bank (others nullptr).
+    void setOscWave (int oscIndex, const Wavetable* table, const WavetableMipBank* mipBank,
+                     const WavetableBank* bank = nullptr);
+
+    void setOscPosition (int oscIndex, float position01);
 
     void setOscUnison (int oscIndex, int unisonCount, float detuneCents);
     void setOscWarp (int oscIndex, WarpMode mode, float amount);

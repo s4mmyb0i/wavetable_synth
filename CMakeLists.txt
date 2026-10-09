@@ -35,6 +35,8 @@ target_sources(WavetableSynth
         Source/PluginProcessor.cpp
         Source/PluginEditor.cpp
         Source/ui/SynthLookAndFeel.cpp
+        Source/ui/WaveSelectKnob.cpp
+        Source/ui/WarpModeSwitch.cpp
         Source/constants.h
         Source/dsp/Wavetable.cpp
         Source/dsp/WavetableMipBank.cpp

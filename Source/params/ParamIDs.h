@@ -31,6 +31,11 @@ inline constexpr const char* osc2WarpAmount = "osc2WarpAmount";
 inline constexpr const char* osc3WarpMode = "osc3WarpMode";
 inline constexpr const char* osc3WarpAmount = "osc3WarpAmount";
 
+// Per-osc wavetable position (used when wave = Morph)
+inline constexpr const char* osc1Position = "osc1Position";
+inline constexpr const char* osc2Position = "osc2Position";
+inline constexpr const char* osc3Position = "osc3Position";
+
 // Filter
 inline constexpr const char* cutoff = "cutoff";
 inline constexpr const char* resonance = "resonance";
