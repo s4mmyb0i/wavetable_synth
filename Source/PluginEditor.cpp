@@ -80,6 +80,11 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     osc2WarpSwitch_.attach (apvts, ParamIDs::osc2WarpMode);
     osc3WarpSwitch_.attach (apvts, ParamIDs::osc3WarpMode);
 
+    osc1WarpSwitch_.onChange = [this] { refreshAllWarpAmountEnabled(); };
+    osc2WarpSwitch_.onChange = [this] { refreshAllWarpAmountEnabled(); };
+    osc3WarpSwitch_.onChange = [this] { refreshAllWarpAmountEnabled(); };
+    refreshAllWarpAmountEnabled();
+
     osc1Waveform_.attach (processorRef, apvts, ParamIDs::osc1Wave, ParamIDs::osc1Position,
                           ParamIDs::osc1WarpMode, ParamIDs::osc1WarpAmount,
                           ParamIDs::osc1UnisonCount, ParamIDs::osc1UnisonDetune);
@@ -181,7 +186,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
                          SynthLookAndFeel::textMuted);
     addAndMakeVisible (keyboard_);
 
-    setSize (980, 680);
+    setSize (980, 760);
     setResizable (false, false);
 }
 
@@ -223,6 +228,24 @@ void WavetableSynthAudioProcessorEditor::refreshAllPositionEnabled()
     updatePositionEnabled (osc3WaveKnob_.getSlider(), osc3PositionSlider_, osc3PositionLabel_);
 }
 
+void WavetableSynthAudioProcessorEditor::updateWarpAmountEnabled (
+    WarpModeSwitch& warpSwitch, juce::Slider& warpAmountSlider, juce::Label& warpAmountLabel)
+{
+    // WarpMode::off ignores amount (see warpPhase).
+    const bool active = warpSwitch.getSelectedIndex() != 0;
+    warpAmountSlider.setEnabled (active);
+    const float alpha = active ? 1.0f : 0.35f;
+    warpAmountSlider.setAlpha (alpha);
+    warpAmountLabel.setAlpha (alpha);
+}
+
+void WavetableSynthAudioProcessorEditor::refreshAllWarpAmountEnabled()
+{
+    updateWarpAmountEnabled (osc1WarpSwitch_, osc1WarpAmountSlider_, osc1WarpAmountLabel_);
+    updateWarpAmountEnabled (osc2WarpSwitch_, osc2WarpAmountSlider_, osc2WarpAmountLabel_);
+    updateWarpAmountEnabled (osc3WarpSwitch_, osc3WarpAmountSlider_, osc3WarpAmountLabel_);
+}
+
 void WavetableSynthAudioProcessorEditor::layoutKnobColumn (juce::Rectangle<int> column,
                                                            juce::Slider& slider, juce::Label& label)
 {
@@ -244,21 +267,26 @@ void WavetableSynthAudioProcessorEditor::layoutOscPanel (
     const int warpW = juce::jmin (warpRow.getWidth() - 8, 160);
     warpSwitch.setBounds (warpRow.withSizeKeepingCentre (warpW, kSwitchH));
 
-    constexpr int kWaveformH = 52;
+    constexpr int kWaveformH = 44;
     waveform.setBounds (inner.removeFromTop (kWaveformH));
-    inner.removeFromTop (6);
+    inner.removeFromTop (4);
 
-    // Wave knob gets a large square cell on the left; remaining knobs stack in two rows.
+    // Slightly larger than one rotary in this panel's top knob row.
+    const int topCols = (detune != nullptr) ? 3 : 2;
+    constexpr int kGapAfterWave = 8;
+    constexpr float kWaveScale = 1.15f;
+    const float avail = static_cast<float> (inner.getWidth() - kGapAfterWave);
     const int waveSize = juce::jmin (
-        inner.getHeight(), juce::roundToInt (static_cast<float> (inner.getWidth()) * 0.42f));
+        inner.getHeight(),
+        juce::roundToInt (kWaveScale * avail
+                          / (static_cast<float> (topCols) + kWaveScale)));
     auto waveArea = inner.removeFromLeft (waveSize);
-    inner.removeFromLeft (6);
+    inner.removeFromLeft (kGapAfterWave);
     waveKnob.setBounds (waveArea.withSizeKeepingCentre (waveSize, waveSize));
 
     auto topRow = inner.removeFromTop (inner.getHeight() / 2);
     auto bottomRow = inner;
 
-    const int topCols = (detune != nullptr) ? 3 : 2;
     const int topW = topRow.getWidth() / topCols;
 
     layoutKnobColumn (topRow.removeFromLeft (topW), level, levelLabel);
@@ -323,7 +351,8 @@ void WavetableSynthAudioProcessorEditor::resized()
 
     bounds.removeFromTop (8);
 
-    auto bottom = bounds.removeFromBottom (bounds.getHeight() / 2 - 6);
+    // Give OSC panels more vertical room than the bottom filter/env row.
+    auto bottom = bounds.removeFromBottom (juce::roundToInt (static_cast<float> (bounds.getHeight()) * 0.40f));
     bounds.removeFromBottom (kGap);
     auto top = bounds;
 

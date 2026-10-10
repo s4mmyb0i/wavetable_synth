@@ -35,6 +35,9 @@ private:
     void updatePositionEnabled (juce::Slider& waveSlider, juce::Slider& positionSlider,
                                 juce::Label& positionLabel);
     void refreshAllPositionEnabled();
+    void updateWarpAmountEnabled (WarpModeSwitch& warpSwitch, juce::Slider& warpAmountSlider,
+                                  juce::Label& warpAmountLabel);
+    void refreshAllWarpAmountEnabled();
 
     WavetableSynthAudioProcessor& processorRef;
     SynthLookAndFeel lookAndFeel_;

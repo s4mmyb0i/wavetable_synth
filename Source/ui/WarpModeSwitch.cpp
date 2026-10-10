@@ -68,6 +68,9 @@ void WarpModeSwitch::parameterValueChanged (int, float)
         });
 }
 
+int WarpModeSwitch::getSelectedIndex() const
+{ return param_ != nullptr ? param_->getIndex() : 0; }
+
 void WarpModeSwitch::syncFromParameter()
 {
     if (param_ == nullptr) return;
@@ -76,6 +79,9 @@ void WarpModeSwitch::syncFromParameter()
     off_.setToggleState (index == 0, juce::dontSendNotification);
     bend_.setToggleState (index == 1, juce::dontSendNotification);
     sync_.setToggleState (index == 2, juce::dontSendNotification);
+
+    if (onChange != nullptr)
+        onChange();
 }
 
 void WarpModeSwitch::paint (juce::Graphics& g)

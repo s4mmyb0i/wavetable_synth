@@ -19,7 +19,7 @@ OR
 - Added per osc view of waveform
 - Additional tiny UI improvements
 - TODO: Add per osc adsr
-- TODO: Add features like mod matrix, user generated tables, pan per osc, additional filters, FM, granular, LFO
+- TODO: Add features like mod matrix, user generated tables, pan per osc, additional filters, FM (?), granular (?), LFO, flanger, chorus
 
 ## October 9, 2026
 

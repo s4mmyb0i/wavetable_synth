@@ -3,6 +3,7 @@
 #include "ui/SynthLookAndFeel.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <functional>
 
 // Three-way segmented switch for warp mode: Off | Bend+ | Sync
 class WarpModeSwitch final : public juce::Component, private juce::AudioProcessorParameter::Listener
@@ -15,6 +16,9 @@ public:
     void resized() override;
 
     void attach (juce::AudioProcessorValueTreeState& apvts, const juce::String& paramID);
+
+    int getSelectedIndex() const;
+    std::function<void()> onChange;
 
 private:
     void parameterValueChanged (int parameterIndex, float newValue) override;
