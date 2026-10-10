@@ -8,6 +8,9 @@ juce::StringArray waveChoices()
 
 juce::StringArray warpChoices()
 { return juce::StringArray {"Off", "Bend+", "Sync"}; } // matches WarpMode order
+
+juce::StringArray noiseChoices()
+{ return juce::StringArray {"White", "Pink"}; } // matches NoiseGenerator::Type
 } // namespace
 
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
@@ -27,32 +30,34 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::ParameterID {ParamIDs::osc3Level, 1}, "Osc 3 Level",
         juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
 
+    const auto centsAttrs = juce::AudioParameterFloatAttributes().withLabel ("ct");
+
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc2Detune, 1}, "Osc 2 Detune",
-        juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, 7.0f));
+        juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, 7.0f, centsAttrs));
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc3Detune, 1}, "Osc 3 Detune",
-        juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, -7.0f));
+        juce::NormalisableRange<float> {-50.0f, 50.0f, 0.1f}, -7.0f, centsAttrs));
 
     // Per-osc unison
     layout.add (std::make_unique<juce::AudioParameterInt> (
         juce::ParameterID {ParamIDs::osc1UnisonCount, 1}, "Osc 1 Unison", 1, 8, 1));
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc1UnisonDetune, 1}, "Osc 1 Uni Detune",
-        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f));
+        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f, centsAttrs));
 
     layout.add (std::make_unique<juce::AudioParameterInt> (
         juce::ParameterID {ParamIDs::osc2UnisonCount, 1}, "Osc 2 Unison", 1, 8, 1));
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc2UnisonDetune, 1}, "Osc 2 Uni Detune",
-        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f));
+        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f, centsAttrs));
 
     layout.add (std::make_unique<juce::AudioParameterInt> (
         juce::ParameterID {ParamIDs::osc3UnisonCount, 1}, "Osc 3 Unison", 1, 8, 1));
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc3UnisonDetune, 1}, "Osc 3 Uni Detune",
-        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f));
+        juce::NormalisableRange<float> {0.0f, 50.0f, 0.1f}, 7.0f, centsAttrs));
 
     // Per-osc wavetype (4 = Morph bank)
     layout.add (std::make_unique<juce::AudioParameterChoice> (
@@ -92,23 +97,33 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::ParameterID {ParamIDs::osc3WarpAmount, 1}, "Osc 3 Warp Amt",
         juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
 
+    // Noise generator
+    layout.add (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID {ParamIDs::noiseType, 1}, "Noise Type", noiseChoices(), 0));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::noiseLevel, 1}, "Noise Level",
+        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
+
     // Filter
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::cutoff, 1}, "Cutoff",
-        juce::NormalisableRange<float> {20.0f, 2000.0f, 0.1f, 0.25f}, 200.0f));
+        juce::NormalisableRange<float> {20.0f, 2000.0f, 0.1f, 0.25f}, 200.0f,
+        juce::AudioParameterFloatAttributes().withLabel ("Hz")));
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::resonance, 1}, "Resonance",
         juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f, 0.25f}, 0.0f));
 
     // ADSR
+    const auto secondsAttrs = juce::AudioParameterFloatAttributes().withLabel ("s");
+
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::attack, 1}, "Attack",
-        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.01f));
+        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.01f, secondsAttrs));
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::decay, 1}, "Decay",
-        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.1f));
+        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.1f, secondsAttrs));
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::sustain, 1}, "Sustain",
@@ -116,7 +131,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::release, 1}, "Release",
-        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.2f));
+        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.2f, secondsAttrs));
 
     return layout;
 }

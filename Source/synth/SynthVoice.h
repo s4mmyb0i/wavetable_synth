@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/WavetableOsc.h"
+#include "dsp/NoiseGenerator.h"
 #include "dsp/Envelope.h"
 #include "dsp/Filter.h"
 #include <juce_audio_basics/juce_audio_basics.h>
@@ -52,6 +53,8 @@ public:
     void setOscLevels (float osc1Level, float osc2Level, float osc3Level);
     void setOscDetuneCents (float detuneBy, float osc2Detune, float osc3Detune);
 
+    void setNoise (NoiseGenerator::Type type, float level);
+
 private:
     void applyOscFrequencies();
     void refreshOscTables();
@@ -71,6 +74,9 @@ private:
     float osc3Level_ = 0.0f;
     float osc2Detune_ = 7.0f;
     float osc3Detune_ = -7.0f;
+
+    NoiseGenerator noise_;
+    float noiseLevel_ = 0.0f;
 
     Filter filter_;
     Envelope envelope_;

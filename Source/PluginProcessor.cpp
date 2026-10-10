@@ -151,6 +151,13 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     resolveWave (osc2Wave, osc2Table, osc2Mip, osc2Bank);
     resolveWave (osc3Wave, osc3Table, osc3Mip, osc3Bank);
 
+    // Noise
+    const int noiseTypeIdx =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::noiseType)->load());
+    const float noiseLevel = apvts_.getRawParameterValue (ParamIDs::noiseLevel)->load();
+    const auto noiseType =
+        (noiseTypeIdx == 1) ? NoiseGenerator::Type::pink : NoiseGenerator::Type::white;
+
     // Filter
     const float cutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
     const float resonance = apvts_.getRawParameterValue (ParamIDs::resonance)->load();
@@ -187,6 +194,7 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 
             voice->setOscLevels (osc1Level, osc2Level, osc3Level);
             voice->setOscDetuneCents (0.0f, osc2Detune, osc3Detune);
+            voice->setNoise (noiseType, noiseLevel);
         }
 
     keyboardState_.processNextMidiBuffer (midiMessages, 0, buffer.getNumSamples(), true);

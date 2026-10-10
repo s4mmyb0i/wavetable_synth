@@ -12,13 +12,19 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+## October 10, 2026
+
+- Added a noise generator (white and pink)
+- Added interactive ADSR graph
+- Added per osc view of waveform
+- Additional tiny UI improvements
+- TODO: Add visuals for each osc
+- TODO: Add per osc adsr
+- TODO: Add features like mod matrix, user generated tables, pan per osc, additional filters, FM, granular, LFO
 
 ## October 9, 2026
 
 - Added wavetable position and morph between sine, triangle, saw waves
-- TODO: Add visuals for each osc
-- TODO: Add per osc adsr including visual - perhaps make it interactive if able
-- TODO: Add features like mod matrix, user generated tables, pan per osc, noise generator
 
 ## October 7, 2026
 

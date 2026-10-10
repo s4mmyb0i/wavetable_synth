@@ -17,50 +17,14 @@ void WavetableOsc::setBank (const WavetableBank& bank)
 void WavetableOsc::setPosition (float position01)
 { position_ = std::clamp (position01, 0.0f, 1.0f); }
 
-float WavetableOsc::spread (int i, int count)
-{
-    if (count == 1)
-        return 0.0f;
-    else
-        return -1.0f + 2.0f * (static_cast<float> (i) / static_cast<float> (count - 1));
-}
-
 void WavetableOsc::updateIncrements()
 {
     if (sampleRate_ < 0) return;
 
     for (int i = 0; i < unisonCount_; ++i)
         increment_[i] = baseFrequencyHz_ *
-                        centsToRatio (spread (i, unisonCount_) * unisonDetuneCents_) / sampleRate_;
-}
-
-float WavetableOsc::warpPhase (float phase01, float amount, WarpMode mode)
-{
-    amount = std::clamp (amount, 0.0f, 1.0f);
-    float p = phase01;
-
-    switch (mode)
-    {
-    case WarpMode::off: break;
-
-    case WarpMode::bendPlus:
-    {
-        const float kink = 0.5f - 0.49f * amount;
-        if (phase01 < kink)
-            p = 0.5f * (phase01 / kink);
-        else
-            p = 0.5f + 0.5f * ((phase01 - kink) / (1.0f - kink));
-        break;
-    }
-
-    case WarpMode::sync:
-    {
-        const float ratio = 1.0f + amount * 7.0f;
-        p = phase01 * ratio;
-        break;
-    }
-    }
-    return p - std::floor (p);
+                        centsToRatio (unisonSpread (i, unisonCount_) * unisonDetuneCents_) /
+                        sampleRate_;
 }
 
 void WavetableOsc::setSampleRate (float sampleRate)

@@ -43,6 +43,12 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     juce::MidiKeyboardState& getKeyboardState() { return keyboardState_; }
 
+    const Wavetable& getSineTable() const { return sineTable_; }
+    const Wavetable& getTriangleTable() const { return triangleTable_; }
+    const WavetableMipBank& getSawMipBank() const { return sawMipBank_; }
+    const WavetableMipBank& getSquareMipBank() const { return squareMipBank_; }
+    const WavetableBank& getMorphBank() const { return morphBank_; }
+
 private:
     Wavetable sineTable_ = Wavetable::sine();
     Wavetable triangleTable_ = Wavetable::triangle();

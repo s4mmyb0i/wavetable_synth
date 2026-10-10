@@ -36,6 +36,10 @@ inline constexpr const char* osc1Position = "osc1Position";
 inline constexpr const char* osc2Position = "osc2Position";
 inline constexpr const char* osc3Position = "osc3Position";
 
+// Noise Generator
+inline constexpr const char* noiseType = "noiseType";
+inline constexpr const char* noiseLevel = "noiseLevel";
+
 // Filter
 inline constexpr const char* cutoff = "cutoff";
 inline constexpr const char* resonance = "resonance";

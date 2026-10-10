@@ -2,6 +2,9 @@
 
 #include "PluginProcessor.h"
 #include "juce_audio_utils/juce_audio_utils.h"
+#include "ui/EnvelopeEditor.h"
+#include "ui/NoiseTypeSwitch.h"
+#include "ui/OscWaveformDisplay.h"
 #include "ui/SynthLookAndFeel.h"
 #include "ui/WaveSelectKnob.h"
 #include "ui/WarpModeSwitch.h"
@@ -18,15 +21,13 @@ public:
 private:
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
-    void setupRotary (juce::Slider& slider, juce::Label& label, const juce::String& name);
-    void setupVertical (juce::Slider& slider, juce::Label& label, const juce::String& name);
+    void setupRotary (juce::Slider& slider, juce::Label& label, const juce::String& name,
+                      const juce::String& unitSuffix = {});
     void layoutKnobColumn (juce::Rectangle<int> column, juce::Slider& slider, juce::Label& label);
-    void layoutVerticalColumn (juce::Rectangle<int> column, juce::Slider& slider,
-                               juce::Label& label);
-    void layoutOscPanel (juce::Rectangle<int> bounds, WaveSelectKnob& waveKnob,
-                         WarpModeSwitch& warpSwitch, juce::Slider& level, juce::Label& levelLabel,
-                         juce::Slider* detune, juce::Label* detuneLabel, juce::Slider& uniCount,
-                         juce::Label& uniCountLabel, juce::Slider& uniDetune,
+    void layoutOscPanel (juce::Rectangle<int> bounds, OscWaveformDisplay& waveform,
+                         WaveSelectKnob& waveKnob, WarpModeSwitch& warpSwitch, juce::Slider& level,
+                         juce::Label& levelLabel, juce::Slider* detune, juce::Label* detuneLabel,
+                         juce::Slider& uniCount, juce::Label& uniCountLabel, juce::Slider& uniDetune,
                          juce::Label& uniDetuneLabel, juce::Slider& warpAmount,
                          juce::Label& warpAmountLabel, juce::Slider& position,
                          juce::Label& positionLabel);
@@ -41,6 +42,7 @@ private:
     juce::Label titleLabel_;
 
     // Osc 1
+    OscWaveformDisplay osc1Waveform_;
     juce::Slider osc1LevelSlider_;
     juce::Label osc1LevelLabel_;
     WaveSelectKnob osc1WaveKnob_;
@@ -51,6 +53,7 @@ private:
     juce::Label osc1PositionLabel_;
 
     // Osc 2
+    OscWaveformDisplay osc2Waveform_;
     juce::Slider osc2LevelSlider_, osc2DetuneSlider_;
     juce::Label osc2LevelLabel_, osc2DetuneLabel_;
     WaveSelectKnob osc2WaveKnob_;
@@ -61,6 +64,7 @@ private:
     juce::Label osc2PositionLabel_;
 
     // Osc 3
+    OscWaveformDisplay osc3Waveform_;
     juce::Slider osc3LevelSlider_, osc3DetuneSlider_;
     juce::Label osc3LevelLabel_, osc3DetuneLabel_;
     WaveSelectKnob osc3WaveKnob_;
@@ -88,6 +92,12 @@ private:
     std::unique_ptr<SliderAttachment> osc2PositionAttachment_;
     std::unique_ptr<SliderAttachment> osc3PositionAttachment_;
 
+    // Noise
+    NoiseTypeSwitch noiseTypeSwitch_;
+    juce::Slider noiseLevelSlider_;
+    juce::Label noiseLevelLabel_;
+    std::unique_ptr<SliderAttachment> noiseLevelAttachment_;
+
     // Filter
     juce::Slider cutoffSlider_, resonanceSlider_;
     juce::Label cutoffLabel_, resonanceLabel_;
@@ -95,6 +105,7 @@ private:
     std::unique_ptr<SliderAttachment> resonanceAttachment_;
 
     // ADSR
+    EnvelopeEditor envelopeEditor_;
     juce::Slider attackSlider_, decaySlider_, sustainSlider_, releaseSlider_;
     juce::Label attackLabel_, decayLabel_, sustainLabel_, releaseLabel_;
     std::unique_ptr<SliderAttachment> attackAttachment_;
@@ -105,6 +116,7 @@ private:
     juce::Rectangle<int> osc1SectionBounds_;
     juce::Rectangle<int> osc2SectionBounds_;
     juce::Rectangle<int> osc3SectionBounds_;
+    juce::Rectangle<int> noiseSectionBounds_;
     juce::Rectangle<int> filterSectionBounds_;
     juce::Rectangle<int> envSectionBounds_;
 

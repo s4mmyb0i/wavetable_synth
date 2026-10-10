@@ -37,6 +37,10 @@ target_sources(WavetableSynth
         Source/ui/SynthLookAndFeel.cpp
         Source/ui/WaveSelectKnob.cpp
         Source/ui/WarpModeSwitch.cpp
+        Source/ui/NoiseTypeSwitch.cpp
+        Source/ui/EnvelopeShape.cpp
+        Source/ui/EnvelopeEditor.cpp
+        Source/ui/OscWaveformDisplay.cpp
         Source/constants.h
         Source/dsp/Wavetable.cpp
         Source/dsp/WavetableMipBank.cpp

@@ -2,16 +2,10 @@
 
 #include "dsp/Wavetable.h"
 #include "dsp/WavetableBank.h"
+#include "dsp/WarpUtils.h"
 
 #include <algorithm>
 #include <cmath>
-
-enum class WarpMode
-{
-    off,
-    bendPlus,
-    sync
-};
 
 class WavetableOsc
 {
@@ -34,15 +28,12 @@ public:
     float process();
 
 private:
+    float centsToRatio (float cents) { return std::pow (2.0f, cents / 1200.0f); }
+    void updateIncrements();
+
     const Wavetable* table_ = nullptr;
     const WavetableBank* bank_ = nullptr;
     float position_ = 0.0f;
-
-    float warpPhase (float phase01, float amount, WarpMode mode);
-
-    float spread (int index, int count);
-    float centsToRatio (float cents) { return std::pow (2.0f, cents / 1200.0f); }
-    void updateIncrements();
 
     float sampleRate_ = 44100.0f;
     float baseFrequencyHz_ = 0.0f;

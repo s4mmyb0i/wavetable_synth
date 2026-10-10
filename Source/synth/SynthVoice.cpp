@@ -115,6 +115,12 @@ void SynthVoice::setOscLevels (float osc1Level, float osc2Level, float osc3Level
     osc3Level_ = osc3Level;
 }
 
+void SynthVoice::setNoise (NoiseGenerator::Type type, float level)
+{
+    noise_.setType (type);
+    noiseLevel_ = level;
+}
+
 void SynthVoice::setOscDetuneCents (float detuneBy, float osc2Detune, float osc3Detune)
 {
     osc2Detune_ = osc2Detune + detuneBy;
@@ -182,7 +188,7 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
     for (int i = 0; i < numSamples; ++i)
     {
         const float mixed = (osc1_.process() * osc1Level_ + osc2_.process() * osc2Level_ +
-                             osc3_.process() * osc3Level_) *
+                             osc3_.process() * osc3Level_ + noise_.process() * noiseLevel_) *
                             0.80f;
         const float filtered = filter_.process (mixed);
         const float env = envelope_.getNextSample();
