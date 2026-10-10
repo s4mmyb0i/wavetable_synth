@@ -16,6 +16,8 @@ add_executable(WavetableTests
     WavetableOscTests.cpp
     WarpOscTests.cpp
     WavetableBankTests.cpp
+    WarpUtilsTests.cpp
+    NoiseGeneratorTests.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Wavetable.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableMipBank.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableOsc.cpp

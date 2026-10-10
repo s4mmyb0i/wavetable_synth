@@ -18,7 +18,6 @@ OR
 - Added interactive ADSR graph
 - Added per osc view of waveform
 - Additional tiny UI improvements
-- TODO: Add visuals for each osc
 - TODO: Add per osc adsr
 - TODO: Add features like mod matrix, user generated tables, pan per osc, additional filters, FM, granular, LFO
 
