@@ -30,7 +30,7 @@ private:
                          juce::Slider& uniCount, juce::Label& uniCountLabel, juce::Slider& uniDetune,
                          juce::Label& uniDetuneLabel, juce::Slider& warpAmount,
                          juce::Label& warpAmountLabel, juce::Slider& position,
-                         juce::Label& positionLabel);
+                         juce::Label& positionLabel, juce::Slider& pan, juce::Label& panLabel);
     void paintSection (juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& title);
     void updatePositionEnabled (juce::Slider& waveSlider, juce::Slider& positionSlider,
                                 juce::Label& positionLabel);
@@ -51,9 +51,9 @@ private:
     WaveSelectKnob osc1WaveKnob_;
     WarpModeSwitch osc1WarpSwitch_;
     juce::Slider osc1UnisonCountSlider_, osc1UnisonDetuneSlider_, osc1WarpAmountSlider_;
-    juce::Slider osc1PositionSlider_;
+    juce::Slider osc1PositionSlider_, osc1PanSlider_;
     juce::Label osc1UnisonCountLabel_, osc1UnisonDetuneLabel_, osc1WarpAmountLabel_;
-    juce::Label osc1PositionLabel_;
+    juce::Label osc1PositionLabel_, osc1PanLabel_;
 
     // Osc 2
     OscWaveformDisplay osc2Waveform_;
@@ -62,9 +62,9 @@ private:
     WaveSelectKnob osc2WaveKnob_;
     WarpModeSwitch osc2WarpSwitch_;
     juce::Slider osc2UnisonCountSlider_, osc2UnisonDetuneSlider_, osc2WarpAmountSlider_;
-    juce::Slider osc2PositionSlider_;
+    juce::Slider osc2PositionSlider_, osc2PanSlider_;
     juce::Label osc2UnisonCountLabel_, osc2UnisonDetuneLabel_, osc2WarpAmountLabel_;
-    juce::Label osc2PositionLabel_;
+    juce::Label osc2PositionLabel_, osc2PanLabel_;
 
     // Osc 3
     OscWaveformDisplay osc3Waveform_;
@@ -73,9 +73,9 @@ private:
     WaveSelectKnob osc3WaveKnob_;
     WarpModeSwitch osc3WarpSwitch_;
     juce::Slider osc3UnisonCountSlider_, osc3UnisonDetuneSlider_, osc3WarpAmountSlider_;
-    juce::Slider osc3PositionSlider_;
+    juce::Slider osc3PositionSlider_, osc3PanSlider_;
     juce::Label osc3UnisonCountLabel_, osc3UnisonDetuneLabel_, osc3WarpAmountLabel_;
-    juce::Label osc3PositionLabel_;
+    juce::Label osc3PositionLabel_, osc3PanLabel_;
 
     std::unique_ptr<SliderAttachment> osc1LevelAttachment_;
     std::unique_ptr<SliderAttachment> osc2LevelAttachment_;
@@ -94,12 +94,16 @@ private:
     std::unique_ptr<SliderAttachment> osc1PositionAttachment_;
     std::unique_ptr<SliderAttachment> osc2PositionAttachment_;
     std::unique_ptr<SliderAttachment> osc3PositionAttachment_;
+    std::unique_ptr<SliderAttachment> osc1PanAttachment_;
+    std::unique_ptr<SliderAttachment> osc2PanAttachment_;
+    std::unique_ptr<SliderAttachment> osc3PanAttachment_;
 
     // Noise
     NoiseTypeSwitch noiseTypeSwitch_;
-    juce::Slider noiseLevelSlider_;
-    juce::Label noiseLevelLabel_;
+    juce::Slider noiseLevelSlider_, noisePanSlider_;
+    juce::Label noiseLevelLabel_, noisePanLabel_;
     std::unique_ptr<SliderAttachment> noiseLevelAttachment_;
+    std::unique_ptr<SliderAttachment> noisePanAttachment_;
 
     // Filter
     juce::Slider cutoffSlider_, resonanceSlider_;

@@ -55,10 +55,14 @@ public:
 
     void setNoise (NoiseGenerator::Type type, float level);
 
+    void setOscPan (float osc1Pan, float osc2Pan, float osc3Pan);
+    void setNoisePan (float noisePan);
+
 private:
     void applyOscFrequencies();
     void refreshOscTables();
     void applySourceToOsc (WavetableOsc& osc, const OscSource& source, float frequencyHz);
+    void applyPan (float sample, float pan, float& L, float& R) const;
 
     float frequencyForCents (float cents) const
     { return noteFrequencyHz_ * std::pow (2.0f, cents / 1200.0f); }
@@ -77,6 +81,11 @@ private:
 
     NoiseGenerator noise_;
     float noiseLevel_ = 0.0f;
+
+    float osc1Pan_ = 0.0f;
+    float osc2Pan_ = 0.0f;
+    float osc3Pan_ = 0.0f;
+    float noisePan_ = 0.0f;
 
     Filter filter_;
     Envelope envelope_;

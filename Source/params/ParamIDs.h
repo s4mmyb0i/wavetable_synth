@@ -36,9 +36,15 @@ inline constexpr const char* osc1Position = "osc1Position";
 inline constexpr const char* osc2Position = "osc2Position";
 inline constexpr const char* osc3Position = "osc3Position";
 
+// Per-osc pan
+inline constexpr const char* osc1Pan = "osc1Pan";
+inline constexpr const char* osc2Pan = "osc2Pan";
+inline constexpr const char* osc3Pan = "osc3Pan";
+
 // Noise Generator
 inline constexpr const char* noiseType = "noiseType";
 inline constexpr const char* noiseLevel = "noiseLevel";
+inline constexpr const char* noisePan = "noisePan";
 
 // Filter
 inline constexpr const char* cutoff = "cutoff";

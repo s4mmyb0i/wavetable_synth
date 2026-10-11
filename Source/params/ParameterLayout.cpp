@@ -97,12 +97,27 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::ParameterID {ParamIDs::osc3WarpAmount, 1}, "Osc 3 Warp Amt",
         juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
 
+    // Per-osc / noise pan (−1 = left, 0 = centre, +1 = right)
+    const auto panAttrs = juce::AudioParameterFloatAttributes().withLabel ("L/R");
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc1Pan, 1}, "Osc 1 Pan",
+        juce::NormalisableRange<float> {-1.0f, 1.0f, 0.01f}, 0.0f, panAttrs));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc2Pan, 1}, "Osc 2 Pan",
+        juce::NormalisableRange<float> {-1.0f, 1.0f, 0.01f}, 0.0f, panAttrs));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::osc3Pan, 1}, "Osc 3 Pan",
+        juce::NormalisableRange<float> {-1.0f, 1.0f, 0.01f}, 0.0f, panAttrs));
+
     // Noise generator
     layout.add (std::make_unique<juce::AudioParameterChoice> (
         juce::ParameterID {ParamIDs::noiseType, 1}, "Noise Type", noiseChoices(), 0));
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::noiseLevel, 1}, "Noise Level",
         juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::noisePan, 1}, "Noise Pan",
+        juce::NormalisableRange<float> {-1.0f, 1.0f, 0.01f}, 0.0f, panAttrs));
 
     // Filter
     layout.add (std::make_unique<juce::AudioParameterFloat> (

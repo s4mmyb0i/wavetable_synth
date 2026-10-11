@@ -151,12 +151,17 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     resolveWave (osc2Wave, osc2Table, osc2Mip, osc2Bank);
     resolveWave (osc3Wave, osc3Table, osc3Mip, osc3Bank);
 
+    const float osc1Pan = apvts_.getRawParameterValue (ParamIDs::osc1Pan)->load();
+    const float osc2Pan = apvts_.getRawParameterValue (ParamIDs::osc2Pan)->load();
+    const float osc3Pan = apvts_.getRawParameterValue (ParamIDs::osc3Pan)->load();
+
     // Noise
     const int noiseTypeIdx =
         static_cast<int> (apvts_.getRawParameterValue (ParamIDs::noiseType)->load());
     const float noiseLevel = apvts_.getRawParameterValue (ParamIDs::noiseLevel)->load();
     const auto noiseType =
         (noiseTypeIdx == 1) ? NoiseGenerator::Type::pink : NoiseGenerator::Type::white;
+    const float noisePan = apvts_.getRawParameterValue (ParamIDs::noisePan)->load();
 
     // Filter
     const float cutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
@@ -195,6 +200,9 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             voice->setOscLevels (osc1Level, osc2Level, osc3Level);
             voice->setOscDetuneCents (0.0f, osc2Detune, osc3Detune);
             voice->setNoise (noiseType, noiseLevel);
+
+            voice->setOscPan (osc1Pan, osc2Pan, osc3Pan);
+            voice->setNoisePan (noisePan);
         }
 
     keyboardState_.processNextMidiBuffer (midiMessages, 0, buffer.getNumSamples(), true);

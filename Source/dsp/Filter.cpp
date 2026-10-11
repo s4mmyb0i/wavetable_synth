@@ -7,7 +7,6 @@
 void Filter::setSampleRate (float sampleRate)
 {
     if (sampleRate > 0.0f) sampleRate_ = sampleRate;
-
     updateCoefficient();
 }
 
@@ -25,8 +24,10 @@ void Filter::setResonance (float resonance01)
 
 void Filter::reset()
 {
-    lp_ = 0.0f;
-    bp_ = 0.0f;
+    lpL_ = 0.0f;
+    bpL_ = 0.0f;
+    lpR_ = 0.0f;
+    bpR_ = 0.0f;
 }
 
 void Filter::updateCoefficient()
@@ -38,10 +39,16 @@ void Filter::updateCoefficient()
     R_ = 2.0f - 1.9f * resonance_;
 }
 
-float Filter::process (float input)
+float Filter::processChannel (float in, float& lp, float& bp)
 {
-    const float hp = input - lp_ - R_ * bp_;
-    bp_ += g_ * hp;
-    lp_ += g_ * bp_;
-    return lp_;
+    const float hp = in - lp - R_ * bp;
+    bp += g_ * hp;
+    lp += g_ * bp;
+    return lp;
+}
+
+void Filter::process (float inL, float inR, float& outL, float& outR)
+{
+    outL = processChannel (inL, lpL_, bpL_);
+    outR = processChannel (inR, lpR_, bpR_);
 }

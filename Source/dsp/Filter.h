@@ -11,17 +11,21 @@ public:
     void reset();
 
     // y = filter(x)
-    float process (float input);
+    void process (float inL, float inR, float& outL, float& outR);
 
 private:
     void updateCoefficient();
+    float processChannel (float in, float& lp, float& bp);
 
     float sampleRate_ = 44100.0f;
     float cutoffHz_ = 1000.0f;
     float resonance_ = 0.0f;
 
-    float lp_ = 0.0f;
-    float bp_ = 0.0f;
     float g_ = 0.0f;
     float R_ = 0.0f;
+
+    float lpL_ = 0.0f;
+    float bpL_ = 0.0f;
+    float lpR_ = 0.0f;
+    float bpR_ = 0.0f;
 };

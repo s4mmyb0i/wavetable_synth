@@ -5,6 +5,12 @@
 
 #include <cmath>
 
+namespace
+{
+void processMono (Filter& filter, float in, float& outL, float& outR)
+{ filter.process (in, in, outL, outR); }
+} // namespace
+
 TEST_CASE ("filter output stays finite", "[filter]")
 {
     Filter filter;
@@ -16,7 +22,10 @@ TEST_CASE ("filter output stays finite", "[filter]")
     for (int i = 0; i < 1024; ++i)
     {
         const float x = std::sin (0.05f * static_cast<float> (i));
-        REQUIRE (std::isfinite (filter.process (x)));
+        float yL = 0.0f, yR = 0.0f;
+        processMono (filter, x, yL, yR);
+        REQUIRE (std::isfinite (yL));
+        REQUIRE (std::isfinite (yR));
     }
 }
 
@@ -29,10 +38,11 @@ TEST_CASE ("filter dc step settles toward input at high cutoff", "[filter]")
     filter.reset();
 
     constexpr float dc = 0.5f;
-    float y = 0.0f;
-    for (int i = 0; i < 2000; ++i) y = filter.process (dc);
+    float yL = 0.0f, yR = 0.0f;
+    for (int i = 0; i < 2000; ++i) processMono (filter, dc, yL, yR);
 
-    REQUIRE (y == Catch::Approx (dc).margin (0.05f));
+    REQUIRE (yL == Catch::Approx (dc).margin (0.05f));
+    REQUIRE (yR == Catch::Approx (dc).margin (0.05f));
 }
 
 TEST_CASE ("higher resonance changes the impulse response", "[filter]")
@@ -46,9 +56,15 @@ TEST_CASE ("higher resonance changes the impulse response", "[filter]")
         filter.reset();
 
         float energy = 0.0f;
+        float yL = 0.0f, yR = 0.0f;
         // Impulse then zeros — resonant filter rings longer / louder.
-        energy += std::abs (filter.process (1.0f));
-        for (int i = 0; i < 256; ++i) energy += std::abs (filter.process (0.0f));
+        processMono (filter, 1.0f, yL, yR);
+        energy += std::abs (yL);
+        for (int i = 0; i < 256; ++i)
+        {
+            processMono (filter, 0.0f, yL, yR);
+            energy += std::abs (yL);
+        }
         return energy;
     };
 
@@ -68,5 +84,37 @@ TEST_CASE ("cutoff near nyquist stays stable with resonance", "[filter]")
     filter.setResonance (0.8f);
     filter.reset();
 
-    for (int i = 0; i < 512; ++i) REQUIRE (std::isfinite (filter.process (0.25f)));
+    for (int i = 0; i < 512; ++i)
+    {
+        float yL = 0.0f, yR = 0.0f;
+        processMono (filter, 0.25f, yL, yR);
+        REQUIRE (std::isfinite (yL));
+        REQUIRE (std::isfinite (yR));
+    }
+}
+
+TEST_CASE ("stereo channels have independent state", "[filter]")
+{
+    Filter filter;
+    filter.setSampleRate (48000.0f);
+    filter.setCutoffHz (1000.0f);
+    filter.setResonance (0.5f);
+    filter.reset();
+
+    // Drive only the left channel with an impulse; right stays quiet after settling.
+    float yL = 0.0f, yR = 0.0f;
+    filter.process (1.0f, 0.0f, yL, yR);
+    REQUIRE (std::abs (yL) > std::abs (yR));
+
+    for (int i = 0; i < 64; ++i) filter.process (0.0f, 0.0f, yL, yR);
+
+    // Left still ringing more than right from the impulse.
+    float leftEnergy = 0.0f, rightEnergy = 0.0f;
+    for (int i = 0; i < 128; ++i)
+    {
+        filter.process (0.0f, 0.0f, yL, yR);
+        leftEnergy += std::abs (yL);
+        rightEnergy += std::abs (yR);
+    }
+    REQUIRE (leftEnergy > rightEnergy);
 }

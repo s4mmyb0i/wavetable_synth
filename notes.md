@@ -3,7 +3,7 @@
 ## Build commands:
 
 `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug`
-`cmake --build build --target WavetableSynth_AU WavetableSynth_VST3 WavetableSynth_Standalone`
+`cmake --build build --target WavetableSynth_AU WavetableSynth_VST3 WavetableSynth_Standalone WavetableTests`
 `open "build/WavetableSynth_artefacts/Debug/Standalone/Wavetable Synth.app"`
 
 `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug   # once / when CMake changes`
@@ -18,8 +18,12 @@ OR
 - Added interactive ADSR graph
 - Added per osc view of waveform
 - Additional tiny UI improvements
+- Added pan per osc + noise
+- Added stereo filter
 - TODO: Add per osc adsr
-- TODO: Add features like mod matrix, user generated tables, pan per osc, additional filters, FM (?), granular (?), LFO, flanger, chorus
+- TODO: Give separate filter and adsr to noise generator
+- TODO: Fix UI to be consistent
+- TODO: Add features like mod matrix, user generated tables, additional filters, FM (?), granular (?), LFO, flanger, chorus
 
 ## October 9, 2026
 

@@ -34,6 +34,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     setupRotary (osc1UnisonDetuneSlider_, osc1UnisonDetuneLabel_, "Spread", " ct");
     setupRotary (osc1WarpAmountSlider_, osc1WarpAmountLabel_, "Warp");
     setupRotary (osc1PositionSlider_, osc1PositionLabel_, "Pos");
+    setupRotary (osc1PanSlider_, osc1PanLabel_, "Pan");
 
     setupRotary (osc2LevelSlider_, osc2LevelLabel_, "Level");
     setupRotary (osc2DetuneSlider_, osc2DetuneLabel_, "Detune", " ct");
@@ -41,6 +42,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     setupRotary (osc2UnisonDetuneSlider_, osc2UnisonDetuneLabel_, "Spread", " ct");
     setupRotary (osc2WarpAmountSlider_, osc2WarpAmountLabel_, "Warp");
     setupRotary (osc2PositionSlider_, osc2PositionLabel_, "Pos");
+    setupRotary (osc2PanSlider_, osc2PanLabel_, "Pan");
 
     setupRotary (osc3LevelSlider_, osc3LevelLabel_, "Level");
     setupRotary (osc3DetuneSlider_, osc3DetuneLabel_, "Detune", " ct");
@@ -48,6 +50,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     setupRotary (osc3UnisonDetuneSlider_, osc3UnisonDetuneLabel_, "Spread", " ct");
     setupRotary (osc3WarpAmountSlider_, osc3WarpAmountLabel_, "Warp");
     setupRotary (osc3PositionSlider_, osc3PositionLabel_, "Pos");
+    setupRotary (osc3PanSlider_, osc3PanLabel_, "Pan");
 
     addAndMakeVisible (osc1Waveform_);
     addAndMakeVisible (osc2Waveform_);
@@ -60,6 +63,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     addAndMakeVisible (osc3WarpSwitch_);
 
     setupRotary (noiseLevelSlider_, noiseLevelLabel_, "Level");
+    setupRotary (noisePanSlider_, noisePanLabel_, "Pan");
     addAndMakeVisible (noiseTypeSwitch_);
 
     setupRotary (cutoffSlider_, cutoffLabel_, "Cutoff", " Hz");
@@ -98,6 +102,8 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     noiseTypeSwitch_.attach (apvts, ParamIDs::noiseType);
     noiseLevelAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::noiseLevel, noiseLevelSlider_);
+    noisePanAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::noisePan, noisePanSlider_);
 
     osc1LevelAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::osc1Level, osc1LevelSlider_);
@@ -136,6 +142,13 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
         apvts, ParamIDs::osc2Position, osc2PositionSlider_);
     osc3PositionAttachment_ = std::make_unique<SliderAttachment> (
         apvts, ParamIDs::osc3Position, osc3PositionSlider_);
+
+    osc1PanAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc1Pan, osc1PanSlider_);
+    osc2PanAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc2Pan, osc2PanSlider_);
+    osc3PanAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc3Pan, osc3PanSlider_);
 
     cutoffAttachment_ = std::make_unique<SliderAttachment> (apvts, ParamIDs::cutoff, cutoffSlider_);
     resonanceAttachment_ =
@@ -258,7 +271,8 @@ void WavetableSynthAudioProcessorEditor::layoutOscPanel (
     WarpModeSwitch& warpSwitch, juce::Slider& level, juce::Label& levelLabel, juce::Slider* detune,
     juce::Label* detuneLabel, juce::Slider& uniCount, juce::Label& uniCountLabel,
     juce::Slider& uniDetune, juce::Label& uniDetuneLabel, juce::Slider& warpAmount,
-    juce::Label& warpAmountLabel, juce::Slider& position, juce::Label& positionLabel)
+    juce::Label& warpAmountLabel, juce::Slider& position, juce::Label& positionLabel,
+    juce::Slider& pan, juce::Label& panLabel)
 {
     auto inner = bounds.reduced (10);
     inner.removeFromTop (kSectionTitleH);
@@ -294,10 +308,11 @@ void WavetableSynthAudioProcessorEditor::layoutOscPanel (
         layoutKnobColumn (topRow.removeFromLeft (topW), *detune, *detuneLabel);
     layoutKnobColumn (topRow, warpAmount, warpAmountLabel);
 
-    const int botW = bottomRow.getWidth() / 3;
+    const int botW = bottomRow.getWidth() / 4;
     layoutKnobColumn (bottomRow.removeFromLeft (botW), uniCount, uniCountLabel);
     layoutKnobColumn (bottomRow.removeFromLeft (botW), uniDetune, uniDetuneLabel);
-    layoutKnobColumn (bottomRow, position, positionLabel);
+    layoutKnobColumn (bottomRow.removeFromLeft (botW), position, positionLabel);
+    layoutKnobColumn (bottomRow, pan, panLabel);
 }
 
 void WavetableSynthAudioProcessorEditor::paintSection (juce::Graphics& g,
@@ -377,17 +392,17 @@ void WavetableSynthAudioProcessorEditor::resized()
                     osc1LevelSlider_, osc1LevelLabel_, nullptr, nullptr, osc1UnisonCountSlider_,
                     osc1UnisonCountLabel_, osc1UnisonDetuneSlider_, osc1UnisonDetuneLabel_,
                     osc1WarpAmountSlider_, osc1WarpAmountLabel_, osc1PositionSlider_,
-                    osc1PositionLabel_);
+                    osc1PositionLabel_, osc1PanSlider_, osc1PanLabel_);
     layoutOscPanel (osc2SectionBounds_, osc2Waveform_, osc2WaveKnob_, osc2WarpSwitch_,
                     osc2LevelSlider_, osc2LevelLabel_, &osc2DetuneSlider_, &osc2DetuneLabel_,
                     osc2UnisonCountSlider_, osc2UnisonCountLabel_, osc2UnisonDetuneSlider_,
                     osc2UnisonDetuneLabel_, osc2WarpAmountSlider_, osc2WarpAmountLabel_,
-                    osc2PositionSlider_, osc2PositionLabel_);
+                    osc2PositionSlider_, osc2PositionLabel_, osc2PanSlider_, osc2PanLabel_);
     layoutOscPanel (osc3SectionBounds_, osc3Waveform_, osc3WaveKnob_, osc3WarpSwitch_,
                     osc3LevelSlider_, osc3LevelLabel_, &osc3DetuneSlider_, &osc3DetuneLabel_,
                     osc3UnisonCountSlider_, osc3UnisonCountLabel_, osc3UnisonDetuneSlider_,
                     osc3UnisonDetuneLabel_, osc3WarpAmountSlider_, osc3WarpAmountLabel_,
-                    osc3PositionSlider_, osc3PositionLabel_);
+                    osc3PositionSlider_, osc3PositionLabel_, osc3PanSlider_, osc3PanLabel_);
 
     {
         auto inner = noiseSectionBounds_.reduced (10);
@@ -395,7 +410,9 @@ void WavetableSynthAudioProcessorEditor::resized()
         auto typeRow = inner.removeFromTop (kSwitchH + 6);
         const int typeW = juce::jmin (typeRow.getWidth() - 4, 120);
         noiseTypeSwitch_.setBounds (typeRow.withSizeKeepingCentre (typeW, kSwitchH));
-        layoutKnobColumn (inner, noiseLevelSlider_, noiseLevelLabel_);
+        const int colW = inner.getWidth() / 2;
+        layoutKnobColumn (inner.removeFromLeft (colW), noiseLevelSlider_, noiseLevelLabel_);
+        layoutKnobColumn (inner, noisePanSlider_, noisePanLabel_);
     }
 
     {

@@ -4,6 +4,7 @@
 #include "dsp/WavetableBank.h"
 #include "dsp/WavetableMipBank.h"
 #include "dsp/Envelope.h"
+#include "dsp/MathConstants.h"
 
 #include <cmath>
 
@@ -129,6 +130,24 @@ void SynthVoice::setOscDetuneCents (float detuneBy, float osc2Detune, float osc3
     if (isVoiceActive()) applyOscFrequencies();
 }
 
+void SynthVoice::setOscPan (float osc1Pan, float osc2Pan, float osc3Pan)
+{
+    osc1Pan_ = std::clamp (osc1Pan, -1.0f, 1.0f);
+    osc2Pan_ = std::clamp (osc2Pan, -1.0f, 1.0f);
+    osc3Pan_ = std::clamp (osc3Pan, -1.0f, 1.0f);
+}
+
+void SynthVoice::setNoisePan (float noisePan)
+{ noisePan_ = std::clamp (noisePan, -1.0f, 1.0f); }
+
+void SynthVoice::applyPan (float sample, float pan, float& L, float& R) const
+{
+    pan = std::clamp (pan, -1.0f, 1.0f);
+    const float angle = (pan + 1.0f) * static_cast<float> (dsp::kPi) * 0.25f;
+    L = sample * std::cos (angle);
+    R = sample * std::sin (angle);
+}
+
 void SynthVoice::startNote (int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
                             int currentPitchWheelPosition)
 {
@@ -187,15 +206,43 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
 
     for (int i = 0; i < numSamples; ++i)
     {
-        const float mixed = (osc1_.process() * osc1Level_ + osc2_.process() * osc2Level_ +
-                             osc3_.process() * osc3Level_ + noise_.process() * noiseLevel_) *
-                            0.80f;
-        const float filtered = filter_.process (mixed);
-        const float env = envelope_.getNextSample();
-        const float sample = filtered * level_ * env;
+        const float osc1Sample = osc1_.process() * osc1Level_;
+        const float osc2Sample = osc2_.process() * osc2Level_;
+        const float osc3Sample = osc3_.process() * osc3Level_;
+        const float noiseSample = noise_.process() * noiseLevel_;
 
-        for (int ch = 0; ch < outputBuffer.getNumChannels(); ++ch)
-            outputBuffer.addSample (ch, startSample + i, sample);
+        float osc1L, osc1R;
+        float osc2L, osc2R;
+        float osc3L, osc3R;
+        float noiseL, noiseR;
+
+        applyPan (osc1Sample, osc1Pan_, osc1L, osc1R);
+        applyPan (osc2Sample, osc2Pan_, osc2L, osc2R);
+        applyPan (osc3Sample, osc3Pan_, osc3L, osc3R);
+        applyPan (noiseSample, noisePan_, noiseL, noiseR);
+
+        const float L = (osc1L + osc2L + osc3L + noiseL) * 0.8f;
+        const float R = (osc1R + osc2R + osc3R + noiseR) * 0.8f;
+
+        float filteredL, filteredR;
+
+        filter_.process (L, R, filteredL, filteredR);
+
+        const float env = envelope_.getNextSample();
+        const float gain = level_ * env;
+
+        const float sampleL = filteredL * gain;
+        const float sampleR = filteredR * gain;
+
+        const int numChannels = outputBuffer.getNumChannels();
+
+        if (numChannels >= 2)
+        {
+            outputBuffer.addSample (0, startSample + i, sampleL);
+            outputBuffer.addSample (1, startSample + i, sampleR);
+        }
+        else if (numChannels >= 1)
+            outputBuffer.addSample (0, startSample + i, (sampleL + sampleR) * 0.5f);
 
         if (! envelope_.isActive())
         {
