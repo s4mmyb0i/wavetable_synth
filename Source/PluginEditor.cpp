@@ -164,12 +164,21 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     osc3PanAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::osc3Pan, osc3PanSlider_);
 
-    cutoffAttachment_ = std::make_unique<SliderAttachment> (apvts, ParamIDs::cutoff, cutoffSlider_);
-    resonanceAttachment_ =
-        std::make_unique<SliderAttachment> (apvts, ParamIDs::resonance, resonanceSlider_);
+    filterHintLabel_.setJustificationType (juce::Justification::centred);
+    filterHintLabel_.setColour (juce::Label::textColourId, SynthLookAndFeel::textMuted);
+    filterHintLabel_.setFont (juce::FontOptions (11.0f));
+    addAndMakeVisible (filterHintLabel_);
 
-    filterEditor_.attach (apvts, ParamIDs::cutoff, ParamIDs::resonance);
+    addAndMakeVisible (filterSourceSwitch_);
     addAndMakeVisible (filterEditor_);
+    filterSourceSwitch_.onChange = [this]
+    {
+        const int idx = filterSourceSwitch_.getSelectedIndex();
+        attachFilterSource (idx);
+        updateFilterHint (idx);
+    };
+    attachFilterSource (0);
+    updateFilterHint (0);
 
     addAndMakeVisible (envSourceSwitch_);
     addAndMakeVisible (envelopeEditor_);
@@ -304,6 +313,38 @@ void WavetableSynthAudioProcessorEditor::attachEnvelopeSource (int sourceIndex)
     decayAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.decay, decaySlider_);
     sustainAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.sustain, sustainSlider_);
     releaseAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.release, releaseSlider_);
+}
+
+void WavetableSynthAudioProcessorEditor::attachFilterSource (int sourceIndex)
+{
+    struct Ids
+    {
+        const char* cutoff;
+        const char* resonance;
+    };
+
+    static constexpr Ids kIds[] = {
+        {ParamIDs::cutoff, ParamIDs::resonance},
+        {ParamIDs::noiseCutoff, ParamIDs::noiseResonance},
+    };
+
+    const auto& ids = kIds[juce::jlimit (0, 1, sourceIndex)];
+    auto& apvts = processorRef.getAPVTS();
+
+    cutoffAttachment_.reset();
+    resonanceAttachment_.reset();
+
+    filterEditor_.attach (apvts, ids.cutoff, ids.resonance);
+    cutoffAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.cutoff, cutoffSlider_);
+    resonanceAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ids.resonance, resonanceSlider_);
+}
+
+void WavetableSynthAudioProcessorEditor::updateFilterHint (int sourceIndex)
+{
+    filterHintLabel_.setText (sourceIndex == 0 ? "Shared low-pass on Osc 1 + 2 + 3 mix"
+                                               : "Low-pass on noise only",
+                              juce::dontSendNotification);
 }
 
 void WavetableSynthAudioProcessorEditor::layoutKnobColumn (juce::Rectangle<int> column,
@@ -451,7 +492,7 @@ void WavetableSynthAudioProcessorEditor::paint (juce::Graphics& g)
     paintSection (g, osc2SectionBounds_, "OSC 2", ! osc2EnableLed_.isSourceOn());
     paintSection (g, osc3SectionBounds_, "OSC 3", ! osc3EnableLed_.isSourceOn());
     paintSection (g, noiseSectionBounds_, "NOISE", ! noiseEnableLed_.isSourceOn());
-    paintSection (g, filterSectionBounds_, "FILTER");
+    paintSection (g, filterSectionBounds_, "FILTERS");
     paintSection (g, envSectionBounds_, "ENVELOPE");
 }
 
@@ -534,6 +575,14 @@ void WavetableSynthAudioProcessorEditor::resized()
     {
         auto inner = filterSectionBounds_.reduced (10);
         inner.removeFromTop (kSectionTitleH);
+
+        auto sourceRow = inner.removeFromTop (kSwitchH + 2);
+        const int sourceW = juce::jmin (sourceRow.getWidth() - 4, 200);
+        filterSourceSwitch_.setBounds (sourceRow.withSizeKeepingCentre (sourceW, kSwitchH));
+
+        constexpr int kHintH = 16;
+        filterHintLabel_.setBounds (inner.removeFromTop (kHintH));
+        inner.removeFromTop (2);
 
         constexpr int kKnobRowH = 96;
         auto knobRow = inner.removeFromBottom (kKnobRowH);

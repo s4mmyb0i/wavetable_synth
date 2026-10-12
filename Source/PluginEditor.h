@@ -6,6 +6,7 @@
 #include "ui/EnvelopeEditor.h"
 #include "ui/EnvSourceSwitch.h"
 #include "ui/FilterEditor.h"
+#include "ui/FilterSourceSwitch.h"
 #include "ui/NoiseTypeSwitch.h"
 #include "ui/SourceEnableLed.h"
 #include "ui/OscWaveformDisplay.h"
@@ -45,6 +46,8 @@ private:
                                   juce::Label& warpAmountLabel);
     void refreshAllWarpAmountEnabled();
     void attachEnvelopeSource (int sourceIndex);
+    void attachFilterSource (int sourceIndex);
+    void updateFilterHint (int sourceIndex);
     void setComponentsDimmed (bool dimmed, std::initializer_list<juce::Component*> components);
     void refreshSourcePanelDims();
 
@@ -118,7 +121,9 @@ private:
     std::unique_ptr<SliderAttachment> noiseLevelAttachment_;
     std::unique_ptr<SliderAttachment> noisePanAttachment_;
 
-    // Filter
+    // Filter (Osc 1-3 bus | Noise selector rebinds graph + knobs)
+    FilterSourceSwitch filterSourceSwitch_;
+    juce::Label filterHintLabel_;
     FilterEditor filterEditor_;
     juce::Slider cutoffSlider_, resonanceSlider_;
     juce::Label cutoffLabel_, resonanceLabel_;

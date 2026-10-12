@@ -42,6 +42,7 @@ target_sources(WavetableSynth
         Source/ui/EnvelopeShape.cpp
         Source/ui/EnvelopeEditor.cpp
         Source/ui/FilterEditor.cpp
+        Source/ui/FilterSourceSwitch.cpp
         Source/ui/SourceEnableLed.cpp
         Source/ui/OscWaveformDisplay.cpp
         Source/constants.h

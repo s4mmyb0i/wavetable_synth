@@ -129,16 +129,27 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::ParameterID {ParamIDs::noisePan, 1}, "Noise Pan",
         juce::NormalisableRange<float> {-1.0f, 1.0f, 0.01f}, 0.0f, panAttrs));
 
-    // Filter
-    auto cutoffRange = juce::NormalisableRange<float> {20.0f, 2000.0f, 0.1f};
-    cutoffRange.setSkewForCentre (200.0f); // smooth near the low end (raw skew 0.25 jumps)
-    layout.add (std::make_unique<juce::AudioParameterFloat> (
-        juce::ParameterID {ParamIDs::cutoff, 1}, "Cutoff", cutoffRange, 200.0f,
-        juce::AudioParameterFloatAttributes().withLabel ("Hz")));
+    // Osc + noise filters (same range; independent params)
+    auto makeCutoffRange = []
+    {
+        auto range = juce::NormalisableRange<float> {20.0f, 2000.0f, 0.1f};
+        range.setSkewForCentre (200.0f); // smooth near the low end (raw skew 0.25 jumps)
+        return range;
+    };
+    const auto cutoffRange = makeCutoffRange();
+    const auto resRange = juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f};
+    const auto hzAttrs = juce::AudioParameterFloatAttributes().withLabel ("Hz");
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
-        juce::ParameterID {ParamIDs::resonance, 1}, "Resonance",
-        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
+        juce::ParameterID {ParamIDs::cutoff, 1}, "Osc 1-3 Cutoff", cutoffRange, 200.0f, hzAttrs));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::resonance, 1}, "Osc 1-3 Resonance", resRange, 0.0f));
+
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::noiseCutoff, 1}, "Noise Cutoff", makeCutoffRange(), 800.0f,
+        hzAttrs));
+    layout.add (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID {ParamIDs::noiseResonance, 1}, "Noise Resonance", resRange, 0.0f));
 
     // Per-source ADSR
     const auto secondsAttrs = juce::AudioParameterFloatAttributes().withLabel ("s");

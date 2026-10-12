@@ -52,11 +52,15 @@ inline constexpr const char* noiseType = "noiseType";
 inline constexpr const char* noiseLevel = "noiseLevel";
 inline constexpr const char* noisePan = "noisePan";
 
-// Filter
+// Osc sum filter
 inline constexpr const char* cutoff = "cutoff";
 inline constexpr const char* resonance = "resonance";
 
-// Per-source ADSR (osc 1–3 + noise)
+// Noise filter (independent of osc filter)
+inline constexpr const char* noiseCutoff = "noiseCutoff";
+inline constexpr const char* noiseResonance = "noiseResonance";
+
+// Per-source ADSR (osc 1-3 + noise)
 inline constexpr const char* osc1Attack = "osc1Attack";
 inline constexpr const char* osc1Decay = "osc1Decay";
 inline constexpr const char* osc1Sustain = "osc1Sustain";

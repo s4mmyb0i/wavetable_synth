@@ -49,8 +49,10 @@ public:
                                 const Envelope::Parameters& param3,
                                 const Envelope::Parameters& param4);
 
-    void setFilterCutoff (float cutoffHz) { filter_.setCutoffHz (cutoffHz); }
-    void setFilterResonance (float resonance01) { filter_.setResonance (resonance01); }
+    void setOscFilterCutoff (float cutoffHz) { oscFilter_.setCutoffHz (cutoffHz); }
+    void setOscFilterResonance (float resonance01) { oscFilter_.setResonance (resonance01); }
+    void setNoiseFilterCutoff (float cutoffHz) { noiseFilter_.setCutoffHz (cutoffHz); }
+    void setNoiseFilterResonance (float resonance01) { noiseFilter_.setResonance (resonance01); }
 
     void setOscLevels (float osc1Level, float osc2Level, float osc3Level);
     void setOscDetuneCents (float detuneBy, float osc2Detune, float osc3Detune);
@@ -102,7 +104,8 @@ private:
     float osc3Pan_ = 0.0f;
     float noisePan_ = 0.0f;
 
-    Filter filter_;
+    Filter oscFilter_;
+    Filter noiseFilter_;
 
     Envelope envelope1_;
     Envelope envelope2_;

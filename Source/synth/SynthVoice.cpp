@@ -180,7 +180,9 @@ void SynthVoice::startNote (int midiNoteNumber, float velocity, juce::Synthesise
     osc2_.reset();
     osc3_.reset();
 
-    filter_.reset();
+    oscFilter_.reset();
+    noiseFilter_.reset();
+
     level_ = std::clamp (velocity, 0.0f, 1.0f);
     envelope1_.noteOn();
     envelope2_.noteOn();
@@ -224,7 +226,8 @@ void SynthVoice::setCurrentPlaybackSampleRate (double newRate)
     osc2_.setSampleRate (static_cast<float> (newRate));
     osc3_.setSampleRate (static_cast<float> (newRate));
 
-    filter_.setSampleRate (static_cast<float> (newRate));
+    oscFilter_.setSampleRate (static_cast<float> (newRate));
+    noiseFilter_.setSampleRate (static_cast<float> (newRate));
 
     envelope1_.setSampleRate (newRate);
     envelope2_.setSampleRate (newRate);
@@ -263,15 +266,19 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
 
         // Four unit-gain sources summed; scale so full levels stay near ±1 peak.
         constexpr float kMixScale = 0.25f;
-        const float L = (osc1L + osc2L + osc3L + noiseL) * kMixScale;
-        const float R = (osc1R + osc2R + osc3R + noiseR) * kMixScale;
+        const float oscL = (osc1L + osc2L + osc3L) * kMixScale;
+        const float oscR = (osc1R + osc2R + osc3R) * kMixScale;
+        noiseL = noiseL * kMixScale;
+        noiseR = noiseR * kMixScale;
 
-        float filteredL, filteredR;
+        float oscFilteredL, oscFilteredR;
+        float noiseFilteredL, noiseFilteredR;
 
-        filter_.process (L, R, filteredL, filteredR);
+        oscFilter_.process (oscL, oscR, oscFilteredL, oscFilteredR);
+        noiseFilter_.process (noiseL, noiseR, noiseFilteredL, noiseFilteredR);
 
-        const float sampleL = filteredL * level_;
-        const float sampleR = filteredR * level_;
+        const float sampleL = (oscFilteredL + noiseFilteredL) * level_;
+        const float sampleR = (oscFilteredR + noiseFilteredR) * level_;
 
         const int numChannels = outputBuffer.getNumChannels();
 

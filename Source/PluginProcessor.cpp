@@ -169,9 +169,11 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
         (noiseTypeIdx == 1) ? NoiseGenerator::Type::pink : NoiseGenerator::Type::white;
     const float noisePan = apvts_.getRawParameterValue (ParamIDs::noisePan)->load();
 
-    // Filter
-    const float cutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
-    const float resonance = apvts_.getRawParameterValue (ParamIDs::resonance)->load();
+    // Filters
+    const float oscCutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
+    const float oscResonance = apvts_.getRawParameterValue (ParamIDs::resonance)->load();
+    const float noiseCutoff = apvts_.getRawParameterValue (ParamIDs::noiseCutoff)->load();
+    const float noiseResonance = apvts_.getRawParameterValue (ParamIDs::noiseResonance)->load();
 
     // Per-source ADSR
     auto readEnv = [this] (const char* attackID, const char* decayID, const char* sustainID,
@@ -213,8 +215,10 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             voice->setOscUnison (1, osc2UnisonCount, osc2UnisonDetune);
             voice->setOscUnison (2, osc3UnisonCount, osc3UnisonDetune);
 
-            voice->setFilterCutoff (cutoff);
-            voice->setFilterResonance (resonance);
+            voice->setOscFilterCutoff (oscCutoff);
+            voice->setOscFilterResonance (oscResonance);
+            voice->setNoiseFilterCutoff (noiseCutoff);
+            voice->setNoiseFilterResonance (noiseResonance);
             voice->setEnvelopeParameters (env1, env2, env3, envNoise);
 
             voice->setOscLevels (osc1Level, osc2Level, osc3Level);
