@@ -41,7 +41,7 @@ private:
     juce::AudioParameterFloat* sustain_ = nullptr;
     juce::AudioParameterFloat* release_ = nullptr;
 
-    juce::NormalisableRange<float> timeRange_ {0.001f, 5.0f, 0.001f, 0.25f};
+    juce::NormalisableRange<float> timeRange_ {0.001f, 5.0f, 0.001f};
 
     int activeHandle_ = -1;
     int hoverHandle_ = -1;

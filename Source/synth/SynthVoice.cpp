@@ -122,6 +122,14 @@ void SynthVoice::setNoise (NoiseGenerator::Type type, float level)
     noiseLevel_ = level;
 }
 
+void SynthVoice::setSourceEnabled (bool osc1On, bool osc2On, bool osc3On, bool noiseOn)
+{
+    osc1On_ = osc1On;
+    osc2On_ = osc2On;
+    osc3On_ = osc3On;
+    noiseOn_ = noiseOn;
+}
+
 void SynthVoice::setOscDetuneCents (float detuneBy, float osc2Detune, float osc3Detune)
 {
     osc2Detune_ = osc2Detune + detuneBy;
@@ -233,10 +241,10 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
 
     for (int i = 0; i < numSamples; ++i)
     {
-        float osc1Sample = osc1_.process() * osc1Level_;
-        float osc2Sample = osc2_.process() * osc2Level_;
-        float osc3Sample = osc3_.process() * osc3Level_;
-        float noiseSample = noise_.process() * noiseLevel_;
+        float osc1Sample = osc1_.process() * osc1Level_ * (osc1On_ ? 1.0f : 0.0f);
+        float osc2Sample = osc2_.process() * osc2Level_ * (osc2On_ ? 1.0f : 0.0f);
+        float osc3Sample = osc3_.process() * osc3Level_ * (osc3On_ ? 1.0f : 0.0f);
+        float noiseSample = noise_.process() * noiseLevel_ * (noiseOn_ ? 1.0f : 0.0f);
 
         osc1Sample = osc1Sample * envelope1_.getNextSample();
         osc2Sample = osc2Sample * envelope2_.getNextSample();

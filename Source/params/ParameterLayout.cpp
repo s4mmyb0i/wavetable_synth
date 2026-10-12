@@ -17,6 +17,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
+    // Per-source enable
+    layout.add (std::make_unique<juce::AudioParameterBool> (
+        juce::ParameterID {ParamIDs::osc1On, 1}, "Osc 1 On", true));
+    layout.add (std::make_unique<juce::AudioParameterBool> (
+        juce::ParameterID {ParamIDs::osc2On, 1}, "Osc 2 On", true));
+    layout.add (std::make_unique<juce::AudioParameterBool> (
+        juce::ParameterID {ParamIDs::osc3On, 1}, "Osc 3 On", true));
+    layout.add (std::make_unique<juce::AudioParameterBool> (
+        juce::ParameterID {ParamIDs::noiseOn, 1}, "Noise On", true));
+
     // Osc mix/detune
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::osc1Level, 1}, "Osc 1 Level",
@@ -120,18 +130,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::NormalisableRange<float> {-1.0f, 1.0f, 0.01f}, 0.0f, panAttrs));
 
     // Filter
+    auto cutoffRange = juce::NormalisableRange<float> {20.0f, 2000.0f, 0.1f};
+    cutoffRange.setSkewForCentre (200.0f); // smooth near the low end (raw skew 0.25 jumps)
     layout.add (std::make_unique<juce::AudioParameterFloat> (
-        juce::ParameterID {ParamIDs::cutoff, 1}, "Cutoff",
-        juce::NormalisableRange<float> {20.0f, 2000.0f, 0.1f, 0.25f}, 200.0f,
+        juce::ParameterID {ParamIDs::cutoff, 1}, "Cutoff", cutoffRange, 200.0f,
         juce::AudioParameterFloatAttributes().withLabel ("Hz")));
 
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::resonance, 1}, "Resonance",
-        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f, 0.25f}, 0.0f));
+        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.0f));
 
     // Per-source ADSR
     const auto secondsAttrs = juce::AudioParameterFloatAttributes().withLabel ("s");
-    const auto timeRange = juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f};
+    auto timeRange = juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f};
+    timeRange.setSkewForCentre (0.5f); // A/D/R; avoid raw skew which jumps off the minimum
     const auto sustainRange = juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f};
 
     auto addAdsr = [&] (const char* attackID, const char* decayID, const char* sustainID,

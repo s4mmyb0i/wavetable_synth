@@ -60,6 +60,8 @@ public:
     void setOscPan (float osc1Pan, float osc2Pan, float osc3Pan);
     void setNoisePan (float noisePan);
 
+    void setSourceEnabled (bool osc1On, bool osc2On, bool osc3On, bool noiseOn);
+
 private:
     void applyOscFrequencies();
     void refreshOscTables();
@@ -86,6 +88,11 @@ private:
     float osc3Level_ = 0.0f;
     float osc2Detune_ = 7.0f;
     float osc3Detune_ = -7.0f;
+
+    bool osc1On_ = true;
+    bool osc2On_ = true;
+    bool osc3On_ = true;
+    bool noiseOn_ = true;
 
     NoiseGenerator noise_;
     float noiseLevel_ = 0.0f;

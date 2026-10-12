@@ -71,6 +71,12 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
 
+    // Per-source enable
+    const bool osc1On = apvts_.getRawParameterValue (ParamIDs::osc1On)->load() > 0.5f;
+    const bool osc2On = apvts_.getRawParameterValue (ParamIDs::osc2On)->load() > 0.5f;
+    const bool osc3On = apvts_.getRawParameterValue (ParamIDs::osc3On)->load() > 0.5f;
+    const bool noiseOn = apvts_.getRawParameterValue (ParamIDs::noiseOn)->load() > 0.5f;
+
     // Osc mix/detune
     const float osc1Level = apvts_.getRawParameterValue (ParamIDs::osc1Level)->load();
     const float osc2Level = apvts_.getRawParameterValue (ParamIDs::osc2Level)->load();
@@ -214,6 +220,7 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             voice->setOscLevels (osc1Level, osc2Level, osc3Level);
             voice->setOscDetuneCents (0.0f, osc2Detune, osc3Detune);
             voice->setNoise (noiseType, noiseLevel);
+            voice->setSourceEnabled (osc1On, osc2On, osc3On, noiseOn);
 
             voice->setOscPan (osc1Pan, osc2Pan, osc3Pan);
             voice->setNoisePan (noisePan);

@@ -2,6 +2,12 @@
 
 namespace ParamIDs
 {
+// Per-source enable (LED power toggles)
+inline constexpr const char* osc1On = "osc1On";
+inline constexpr const char* osc2On = "osc2On";
+inline constexpr const char* osc3On = "osc3On";
+inline constexpr const char* noiseOn = "noiseOn";
+
 // Osc mix/detune
 inline constexpr const char* osc1Level = "osc1Level";
 inline constexpr const char* osc2Level = "osc2Level";

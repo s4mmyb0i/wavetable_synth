@@ -2,9 +2,12 @@
 
 #include "PluginProcessor.h"
 #include "juce_audio_utils/juce_audio_utils.h"
+#include <initializer_list>
 #include "ui/EnvelopeEditor.h"
 #include "ui/EnvSourceSwitch.h"
+#include "ui/FilterEditor.h"
 #include "ui/NoiseTypeSwitch.h"
+#include "ui/SourceEnableLed.h"
 #include "ui/OscWaveformDisplay.h"
 #include "ui/SynthLookAndFeel.h"
 #include "ui/WaveSelectKnob.h"
@@ -24,7 +27,8 @@ private:
 
     void setupRotary (juce::Slider& slider, juce::Label& label, const juce::String& name,
                       const juce::String& unitSuffix = {});
-    void layoutKnobColumn (juce::Rectangle<int> column, juce::Slider& slider, juce::Label& label);
+    void layoutKnobColumn (juce::Rectangle<int> column, juce::Slider& slider, juce::Label& label,
+                           int fixedSide = 0);
     void layoutOscPanel (juce::Rectangle<int> bounds, OscWaveformDisplay& waveform,
                          WaveSelectKnob& waveKnob, WarpModeSwitch& warpSwitch, juce::Slider& level,
                          juce::Label& levelLabel, juce::Slider* detune, juce::Label* detuneLabel,
@@ -32,7 +36,8 @@ private:
                          juce::Label& uniDetuneLabel, juce::Slider& warpAmount,
                          juce::Label& warpAmountLabel, juce::Slider& position,
                          juce::Label& positionLabel, juce::Slider& pan, juce::Label& panLabel);
-    void paintSection (juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& title);
+    void paintSection (juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& title,
+                       bool dimmed = false);
     void updatePositionEnabled (juce::Slider& waveSlider, juce::Slider& positionSlider,
                                 juce::Label& positionLabel);
     void refreshAllPositionEnabled();
@@ -40,6 +45,8 @@ private:
                                   juce::Label& warpAmountLabel);
     void refreshAllWarpAmountEnabled();
     void attachEnvelopeSource (int sourceIndex);
+    void setComponentsDimmed (bool dimmed, std::initializer_list<juce::Component*> components);
+    void refreshSourcePanelDims();
 
     WavetableSynthAudioProcessor& processorRef;
     SynthLookAndFeel lookAndFeel_;
@@ -47,6 +54,7 @@ private:
     juce::Label titleLabel_;
 
     // Osc 1
+    SourceEnableLed osc1EnableLed_;
     OscWaveformDisplay osc1Waveform_;
     juce::Slider osc1LevelSlider_;
     juce::Label osc1LevelLabel_;
@@ -58,6 +66,7 @@ private:
     juce::Label osc1PositionLabel_, osc1PanLabel_;
 
     // Osc 2
+    SourceEnableLed osc2EnableLed_;
     OscWaveformDisplay osc2Waveform_;
     juce::Slider osc2LevelSlider_, osc2DetuneSlider_;
     juce::Label osc2LevelLabel_, osc2DetuneLabel_;
@@ -69,6 +78,7 @@ private:
     juce::Label osc2PositionLabel_, osc2PanLabel_;
 
     // Osc 3
+    SourceEnableLed osc3EnableLed_;
     OscWaveformDisplay osc3Waveform_;
     juce::Slider osc3LevelSlider_, osc3DetuneSlider_;
     juce::Label osc3LevelLabel_, osc3DetuneLabel_;
@@ -101,6 +111,7 @@ private:
     std::unique_ptr<SliderAttachment> osc3PanAttachment_;
 
     // Noise
+    SourceEnableLed noiseEnableLed_;
     NoiseTypeSwitch noiseTypeSwitch_;
     juce::Slider noiseLevelSlider_, noisePanSlider_;
     juce::Label noiseLevelLabel_, noisePanLabel_;
@@ -108,6 +119,7 @@ private:
     std::unique_ptr<SliderAttachment> noisePanAttachment_;
 
     // Filter
+    FilterEditor filterEditor_;
     juce::Slider cutoffSlider_, resonanceSlider_;
     juce::Label cutoffLabel_, resonanceLabel_;
     std::unique_ptr<SliderAttachment> cutoffAttachment_;

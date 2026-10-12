@@ -17,7 +17,7 @@ A polyphonic wavetable synthesizer built with [JUCE](https://juce.com/) and CMak
 - **Noise generator** (white / pink) with level, pan, and its own ADSR
 - **Per-source ADSR** for Osc 1–3 and Noise (custom envelope, not `juce::ADSR`)
   - Interactive graph + A/D/S/R knobs; source selector switches which params they edit
-- **Stereo SVF low-pass** (shared per voice after the mix) with cutoff and resonance
+- **Stereo SVF low-pass** (shared per voice after the mix) with cutoff, resonance, and interactive response graph
 - **Mip-mapped** band-limited saw/square tables; mip chosen by note frequency
 - **APVTS** parameters + custom LookAndFeel editor (waveform previews, segment switches)
 - **Catch2** unit tests for core DSP (wavetables, warp, noise, filter, envelopes, per-source mix)
