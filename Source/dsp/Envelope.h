@@ -31,6 +31,7 @@ private:
     };
 
     void updateRates() noexcept;
+    void armReleaseIncrement() noexcept;
 
     Parameters parameters_;
 

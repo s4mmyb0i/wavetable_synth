@@ -173,7 +173,7 @@ void SynthVoice::startNote (int midiNoteNumber, float velocity, juce::Synthesise
     osc3_.reset();
 
     filter_.reset();
-    level_ = velocity * 0.15f;
+    level_ = std::clamp (velocity, 0.0f, 1.0f);
     envelope1_.noteOn();
     envelope2_.noteOn();
     envelope3_.noteOn();
@@ -253,8 +253,10 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
         applyPan (osc3Sample, osc3Pan_, osc3L, osc3R);
         applyPan (noiseSample, noisePan_, noiseL, noiseR);
 
-        const float L = (osc1L + osc2L + osc3L + noiseL) * 0.8f;
-        const float R = (osc1R + osc2R + osc3R + noiseR) * 0.8f;
+        // Four unit-gain sources summed; scale so full levels stay near ±1 peak.
+        constexpr float kMixScale = 0.25f;
+        const float L = (osc1L + osc2L + osc3L + noiseL) * kMixScale;
+        const float R = (osc1R + osc2R + osc3R + noiseR) * kMixScale;
 
         float filteredL, filteredR;
 
