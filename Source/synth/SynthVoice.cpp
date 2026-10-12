@@ -148,6 +148,17 @@ void SynthVoice::applyPan (float sample, float pan, float& L, float& R) const
     R = sample * std::sin (angle);
 }
 
+void SynthVoice::setEnvelopeParameters (const Envelope::Parameters& param1,
+                                        const Envelope::Parameters& param2,
+                                        const Envelope::Parameters& param3,
+                                        const Envelope::Parameters& param4)
+{
+    envelope1_.setParameters (param1);
+    envelope2_.setParameters (param2);
+    envelope3_.setParameters (param3);
+    envelope4_.setParameters (param4);
+}
+
 void SynthVoice::startNote (int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
                             int currentPitchWheelPosition)
 {
@@ -163,7 +174,10 @@ void SynthVoice::startNote (int midiNoteNumber, float velocity, juce::Synthesise
 
     filter_.reset();
     level_ = velocity * 0.15f;
-    envelope_.noteOn();
+    envelope1_.noteOn();
+    envelope2_.noteOn();
+    envelope3_.noteOn();
+    envelope4_.noteOn();
 }
 
 void SynthVoice::stopNote (float velocity, bool allowTailOff)
@@ -171,10 +185,18 @@ void SynthVoice::stopNote (float velocity, bool allowTailOff)
     (void) velocity;
 
     if (allowTailOff)
-        envelope_.noteOff();
+    {
+        envelope1_.noteOff();
+        envelope2_.noteOff();
+        envelope3_.noteOff();
+        envelope4_.noteOff();
+    }
     else
     {
-        envelope_.reset();
+        envelope1_.reset();
+        envelope2_.reset();
+        envelope3_.reset();
+        envelope4_.reset();
         clearCurrentNote();
         level_ = 0.0f;
         osc1_.reset();
@@ -195,21 +217,31 @@ void SynthVoice::setCurrentPlaybackSampleRate (double newRate)
     osc3_.setSampleRate (static_cast<float> (newRate));
 
     filter_.setSampleRate (static_cast<float> (newRate));
-    envelope_.setSampleRate (newRate);
+
+    envelope1_.setSampleRate (newRate);
+    envelope2_.setSampleRate (newRate);
+    envelope3_.setSampleRate (newRate);
+    envelope4_.setSampleRate (newRate);
+
     refreshOscTables();
 }
 
 void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSample,
                                   int numSamples)
 {
-    if (! envelope_.isActive()) return;
+    if (! isEnvelopeActive()) return;
 
     for (int i = 0; i < numSamples; ++i)
     {
-        const float osc1Sample = osc1_.process() * osc1Level_;
-        const float osc2Sample = osc2_.process() * osc2Level_;
-        const float osc3Sample = osc3_.process() * osc3Level_;
-        const float noiseSample = noise_.process() * noiseLevel_;
+        float osc1Sample = osc1_.process() * osc1Level_;
+        float osc2Sample = osc2_.process() * osc2Level_;
+        float osc3Sample = osc3_.process() * osc3Level_;
+        float noiseSample = noise_.process() * noiseLevel_;
+
+        osc1Sample = osc1Sample * envelope1_.getNextSample();
+        osc2Sample = osc2Sample * envelope2_.getNextSample();
+        osc3Sample = osc3Sample * envelope3_.getNextSample();
+        noiseSample = noiseSample * envelope4_.getNextSample();
 
         float osc1L, osc1R;
         float osc2L, osc2R;
@@ -228,11 +260,8 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
 
         filter_.process (L, R, filteredL, filteredR);
 
-        const float env = envelope_.getNextSample();
-        const float gain = level_ * env;
-
-        const float sampleL = filteredL * gain;
-        const float sampleR = filteredR * gain;
+        const float sampleL = filteredL * level_;
+        const float sampleR = filteredR * level_;
 
         const int numChannels = outputBuffer.getNumChannels();
 
@@ -244,7 +273,7 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
         else if (numChannels >= 1)
             outputBuffer.addSample (0, startSample + i, (sampleL + sampleR) * 0.5f);
 
-        if (! envelope_.isActive())
+        if (! isEnvelopeActive())
         {
             clearCurrentNote();
             level_ = 0.0f;

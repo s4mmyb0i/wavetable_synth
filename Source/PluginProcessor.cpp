@@ -167,12 +167,26 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     const float cutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
     const float resonance = apvts_.getRawParameterValue (ParamIDs::resonance)->load();
 
-    // ADSR
-    Envelope::Parameters envParams;
-    envParams.attackSeconds = apvts_.getRawParameterValue (ParamIDs::attack)->load();
-    envParams.decaySeconds = apvts_.getRawParameterValue (ParamIDs::decay)->load();
-    envParams.sustainLevel = apvts_.getRawParameterValue (ParamIDs::sustain)->load();
-    envParams.releaseSeconds = apvts_.getRawParameterValue (ParamIDs::release)->load();
+    // Per-source ADSR
+    auto readEnv = [this] (const char* attackID, const char* decayID, const char* sustainID,
+                           const char* releaseID) -> Envelope::Parameters
+    {
+        Envelope::Parameters p;
+        p.attackSeconds = apvts_.getRawParameterValue (attackID)->load();
+        p.decaySeconds = apvts_.getRawParameterValue (decayID)->load();
+        p.sustainLevel = apvts_.getRawParameterValue (sustainID)->load();
+        p.releaseSeconds = apvts_.getRawParameterValue (releaseID)->load();
+        return p;
+    };
+
+    const auto env1 = readEnv (ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain,
+                               ParamIDs::osc1Release);
+    const auto env2 = readEnv (ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain,
+                               ParamIDs::osc2Release);
+    const auto env3 = readEnv (ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain,
+                               ParamIDs::osc3Release);
+    const auto envNoise = readEnv (ParamIDs::noiseAttack, ParamIDs::noiseDecay,
+                                   ParamIDs::noiseSustain, ParamIDs::noiseRelease);
 
     for (int i = 0; i < synth_.getNumVoices(); ++i)
         if (SynthVoice* voice = dynamic_cast<SynthVoice*> (synth_.getVoice (i)))
@@ -195,7 +209,7 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 
             voice->setFilterCutoff (cutoff);
             voice->setFilterResonance (resonance);
-            voice->setEnvelopeParameters (envParams);
+            voice->setEnvelopeParameters (env1, env2, env3, envNoise);
 
             voice->setOscLevels (osc1Level, osc2Level, osc3Level);
             voice->setOscDetuneCents (0.0f, osc2Detune, osc3Detune);

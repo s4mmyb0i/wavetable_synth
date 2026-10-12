@@ -44,8 +44,10 @@ public:
     void setOscUnison (int oscIndex, int unisonCount, float detuneCents);
     void setOscWarp (int oscIndex, WarpMode mode, float amount);
 
-    void setEnvelopeParameters (const Envelope::Parameters& params)
-    { envelope_.setParameters (params); }
+    void setEnvelopeParameters (const Envelope::Parameters& param1,
+                                const Envelope::Parameters& param2,
+                                const Envelope::Parameters& param3,
+                                const Envelope::Parameters& param4);
 
     void setFilterCutoff (float cutoffHz) { filter_.setCutoffHz (cutoffHz); }
     void setFilterResonance (float resonance01) { filter_.setResonance (resonance01); }
@@ -70,6 +72,12 @@ private:
     OscSource& sourceForIndex (int oscIndex);
     WavetableOsc& oscForIndex (int oscIndex);
 
+    bool isEnvelopeActive()
+    {
+        return (envelope1_.isActive() || envelope2_.isActive() || envelope3_.isActive() ||
+                envelope4_.isActive());
+    }
+
     WavetableOsc osc1_, osc2_, osc3_;
     OscSource osc1Source_, osc2Source_, osc3Source_;
 
@@ -88,7 +96,12 @@ private:
     float noisePan_ = 0.0f;
 
     Filter filter_;
-    Envelope envelope_;
+
+    Envelope envelope1_;
+    Envelope envelope2_;
+    Envelope envelope3_;
+    Envelope envelope4_;
+
     float level_ = 0.0f;
     float noteFrequencyHz_ = 440.0f;
 };

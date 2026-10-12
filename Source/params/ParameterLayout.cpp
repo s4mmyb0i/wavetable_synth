@@ -129,24 +129,32 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         juce::ParameterID {ParamIDs::resonance, 1}, "Resonance",
         juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f, 0.25f}, 0.0f));
 
-    // ADSR
+    // Per-source ADSR
     const auto secondsAttrs = juce::AudioParameterFloatAttributes().withLabel ("s");
+    const auto timeRange = juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f};
+    const auto sustainRange = juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f};
 
-    layout.add (std::make_unique<juce::AudioParameterFloat> (
-        juce::ParameterID {ParamIDs::attack, 1}, "Attack",
-        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.01f, secondsAttrs));
+    auto addAdsr = [&] (const char* attackID, const char* decayID, const char* sustainID,
+                        const char* releaseID, const juce::String& prefix)
+    {
+        layout.add (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID {attackID, 1}, prefix + " Attack", timeRange, 0.01f, secondsAttrs));
+        layout.add (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID {decayID, 1}, prefix + " Decay", timeRange, 0.1f, secondsAttrs));
+        layout.add (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID {sustainID, 1}, prefix + " Sustain", sustainRange, 0.8f));
+        layout.add (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID {releaseID, 1}, prefix + " Release", timeRange, 0.2f, secondsAttrs));
+    };
 
-    layout.add (std::make_unique<juce::AudioParameterFloat> (
-        juce::ParameterID {ParamIDs::decay, 1}, "Decay",
-        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.1f, secondsAttrs));
-
-    layout.add (std::make_unique<juce::AudioParameterFloat> (
-        juce::ParameterID {ParamIDs::sustain, 1}, "Sustain",
-        juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f}, 0.8f));
-
-    layout.add (std::make_unique<juce::AudioParameterFloat> (
-        juce::ParameterID {ParamIDs::release, 1}, "Release",
-        juce::NormalisableRange<float> {0.001f, 5.0f, 0.001f, 0.25f}, 0.2f, secondsAttrs));
+    addAdsr (ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain, ParamIDs::osc1Release,
+             "Osc 1");
+    addAdsr (ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain, ParamIDs::osc2Release,
+             "Osc 2");
+    addAdsr (ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain, ParamIDs::osc3Release,
+             "Osc 3");
+    addAdsr (ParamIDs::noiseAttack, ParamIDs::noiseDecay, ParamIDs::noiseSustain,
+             ParamIDs::noiseRelease, "Noise");
 
     return layout;
 }

@@ -12,6 +12,14 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+## October 11, 2026
+
+- Added per osc ADSR
+- TODO: Give separate filter and adsr to noise generator
+- TODO: Fix UI to be consistent
+- TODO: Add features like mod matrix, user generated tables, additional filters, FM (?), granular (?), LFO, flanger, chorus
+
+
 ## October 10, 2026
 
 - Added a noise generator (white and pink)
@@ -20,10 +28,6 @@ OR
 - Additional tiny UI improvements
 - Added pan per osc + noise
 - Added stereo filter
-- TODO: Add per osc adsr
-- TODO: Give separate filter and adsr to noise generator
-- TODO: Fix UI to be consistent
-- TODO: Add features like mod matrix, user generated tables, additional filters, FM (?), granular (?), LFO, flanger, chorus
 
 ## October 9, 2026
 

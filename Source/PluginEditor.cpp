@@ -154,16 +154,11 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     resonanceAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::resonance, resonanceSlider_);
 
-    envelopeEditor_.attach (apvts, ParamIDs::attack, ParamIDs::decay, ParamIDs::sustain,
-                            ParamIDs::release);
+    addAndMakeVisible (envSourceSwitch_);
     addAndMakeVisible (envelopeEditor_);
-
-    attackAttachment_ = std::make_unique<SliderAttachment> (apvts, ParamIDs::attack, attackSlider_);
-    decayAttachment_ = std::make_unique<SliderAttachment> (apvts, ParamIDs::decay, decaySlider_);
-    sustainAttachment_ =
-        std::make_unique<SliderAttachment> (apvts, ParamIDs::sustain, sustainSlider_);
-    releaseAttachment_ =
-        std::make_unique<SliderAttachment> (apvts, ParamIDs::release, releaseSlider_);
+    envSourceSwitch_.onChange = [this]
+    { attachEnvelopeSource (envSourceSwitch_.getSelectedIndex()); };
+    attachEnvelopeSource (0);
 
     osc1WaveKnob_.getSlider().onValueChange = [this]
     {
@@ -257,6 +252,40 @@ void WavetableSynthAudioProcessorEditor::refreshAllWarpAmountEnabled()
     updateWarpAmountEnabled (osc1WarpSwitch_, osc1WarpAmountSlider_, osc1WarpAmountLabel_);
     updateWarpAmountEnabled (osc2WarpSwitch_, osc2WarpAmountSlider_, osc2WarpAmountLabel_);
     updateWarpAmountEnabled (osc3WarpSwitch_, osc3WarpAmountSlider_, osc3WarpAmountLabel_);
+}
+
+void WavetableSynthAudioProcessorEditor::attachEnvelopeSource (int sourceIndex)
+{
+    struct Ids
+    {
+        const char* attack;
+        const char* decay;
+        const char* sustain;
+        const char* release;
+    };
+
+    static constexpr Ids kIds[] = {
+        {ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain, ParamIDs::osc1Release},
+        {ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain, ParamIDs::osc2Release},
+        {ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain, ParamIDs::osc3Release},
+        {ParamIDs::noiseAttack, ParamIDs::noiseDecay, ParamIDs::noiseSustain,
+         ParamIDs::noiseRelease},
+    };
+
+    const auto& ids = kIds[juce::jlimit (0, 3, sourceIndex)];
+    auto& apvts = processorRef.getAPVTS();
+
+    // Drop old attachments before rebinding so we don't briefly write to the wrong params.
+    attackAttachment_.reset();
+    decayAttachment_.reset();
+    sustainAttachment_.reset();
+    releaseAttachment_.reset();
+
+    envelopeEditor_.attach (apvts, ids.attack, ids.decay, ids.sustain, ids.release);
+    attackAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.attack, attackSlider_);
+    decayAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.decay, decaySlider_);
+    sustainAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.sustain, sustainSlider_);
+    releaseAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.release, releaseSlider_);
 }
 
 void WavetableSynthAudioProcessorEditor::layoutKnobColumn (juce::Rectangle<int> column,
@@ -426,6 +455,10 @@ void WavetableSynthAudioProcessorEditor::resized()
     {
         auto inner = envSectionBounds_.reduced (10);
         inner.removeFromTop (kSectionTitleH);
+
+        auto sourceRow = inner.removeFromTop (kSwitchH + 6);
+        const int sourceW = juce::jmin (sourceRow.getWidth() - 4, 280);
+        envSourceSwitch_.setBounds (sourceRow.withSizeKeepingCentre (sourceW, kSwitchH));
 
         constexpr int kKnobRowH = 100;
         auto knobRow = inner.removeFromBottom (kKnobRowH);

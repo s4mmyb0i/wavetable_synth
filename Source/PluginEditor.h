@@ -3,6 +3,7 @@
 #include "PluginProcessor.h"
 #include "juce_audio_utils/juce_audio_utils.h"
 #include "ui/EnvelopeEditor.h"
+#include "ui/EnvSourceSwitch.h"
 #include "ui/NoiseTypeSwitch.h"
 #include "ui/OscWaveformDisplay.h"
 #include "ui/SynthLookAndFeel.h"
@@ -38,6 +39,7 @@ private:
     void updateWarpAmountEnabled (WarpModeSwitch& warpSwitch, juce::Slider& warpAmountSlider,
                                   juce::Label& warpAmountLabel);
     void refreshAllWarpAmountEnabled();
+    void attachEnvelopeSource (int sourceIndex);
 
     WavetableSynthAudioProcessor& processorRef;
     SynthLookAndFeel lookAndFeel_;
@@ -111,7 +113,8 @@ private:
     std::unique_ptr<SliderAttachment> cutoffAttachment_;
     std::unique_ptr<SliderAttachment> resonanceAttachment_;
 
-    // ADSR
+    // Per-source ADSR (selector switches which params the editor + knobs bind to)
+    EnvSourceSwitch envSourceSwitch_;
     EnvelopeEditor envelopeEditor_;
     juce::Slider attackSlider_, decaySlider_, sustainSlider_, releaseSlider_;
     juce::Label attackLabel_, decayLabel_, sustainLabel_, releaseLabel_;

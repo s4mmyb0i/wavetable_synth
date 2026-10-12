@@ -38,6 +38,7 @@ target_sources(WavetableSynth
         Source/ui/WaveSelectKnob.cpp
         Source/ui/WarpModeSwitch.cpp
         Source/ui/NoiseTypeSwitch.cpp
+        Source/ui/EnvSourceSwitch.cpp
         Source/ui/EnvelopeShape.cpp
         Source/ui/EnvelopeEditor.cpp
         Source/ui/OscWaveformDisplay.cpp
