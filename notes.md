@@ -15,10 +15,9 @@ OR
 ## October 11, 2026
 
 - Added per osc ADSR
+- Unique noise filter
 - Additional UI fixes (interactive filter graph, toggle-able osc, resizable window)
-- TODO: Give separate filter to noise generator
 - TODO: Add features like mod matrix, user generated tables, additional filters, FM (?), granular (?), LFO, flanger, chorus
-
 
 ## October 10, 2026
 
