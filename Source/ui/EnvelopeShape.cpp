@@ -1,6 +1,30 @@
 #include "ui/EnvelopeShape.h"
 
-std::array<EnvelopeShape::Point, EnvelopeShape::numPoints>
+namespace
+{
+void appendShapedSegment (juce::Path& path, juce::Rectangle<float> bounds,
+                          EnvelopeShape::Point a, EnvelopeShape::Point b,
+                          EnvelopeCurve::Handle curve)
+{
+    for (int i = 1; i <= EnvelopeShape::curveSamplesPerSegment; ++i)
+    {
+        const float u = static_cast<float> (i)
+                        / static_cast<float> (EnvelopeShape::curveSamplesPerSegment);
+        const float shaped = EnvelopeCurve::shape (u, curve);
+        const EnvelopeShape::Point n {a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * shaped};
+        path.lineTo (EnvelopeShape::toPixels (n, bounds));
+    }
+}
+
+EnvelopeShape::Point handleOnSegment (EnvelopeShape::Point a, EnvelopeShape::Point b,
+                                      EnvelopeCurve::Handle h)
+{
+    h = EnvelopeCurve::clampHandle (h);
+    return {a.x + (b.x - a.x) * h.x, a.y + (b.y - a.y) * h.y};
+}
+} // namespace
+
+std::array<EnvelopeShape::Point, EnvelopeShape::numCornerPoints>
 EnvelopeShape::buildPoints (const Params& p, const juce::NormalisableRange<float>& timeRange)
 {
     const float adr = 1.0f - sustainFraction;
@@ -25,6 +49,29 @@ EnvelopeShape::buildPoints (const Params& p, const juce::NormalisableRange<float
     }};
 }
 
+std::array<EnvelopeShape::Point, 3>
+EnvelopeShape::buildCurveHandles (const Params& p, const juce::NormalisableRange<float>& timeRange)
+{
+    const auto pts = buildPoints (p, timeRange);
+    return {{
+        handleOnSegment (pts[start], pts[attackPeak], p.attackCurve),
+        handleOnSegment (pts[attackPeak], pts[decaySustain], p.decayCurve),
+        handleOnSegment (pts[sustainEnd], pts[releaseEnd], p.releaseCurve),
+    }};
+}
+
+EnvelopeCurve::Handle EnvelopeShape::handleFromSegmentPoint (Point segmentStart, Point segmentEnd,
+                                                             Point plotPoint)
+{
+    const float dx = segmentEnd.x - segmentStart.x;
+    const float dy = segmentEnd.y - segmentStart.y;
+
+    EnvelopeCurve::Handle h;
+    h.x = std::abs (dx) < 1.0e-6f ? 0.5f : (plotPoint.x - segmentStart.x) / dx;
+    h.y = std::abs (dy) < 1.0e-6f ? 0.5f : (plotPoint.y - segmentStart.y) / dy;
+    return EnvelopeCurve::clampHandle (h);
+}
+
 juce::Point<float> EnvelopeShape::toPixels (Point n, juce::Rectangle<float> bounds)
 { return {bounds.getX() + n.x * bounds.getWidth(), bounds.getBottom() - n.y * bounds.getHeight()}; }
 
@@ -41,12 +88,12 @@ juce::Path EnvelopeShape::buildPath (juce::Rectangle<float> bounds, const Params
 {
     const auto pts = buildPoints (p, timeRange);
     juce::Path path;
-    const auto p0 = toPixels (pts[0], bounds);
-    path.startNewSubPath (p0);
+    path.startNewSubPath (toPixels (pts[start], bounds));
 
-    // Straight segments for now — replace with curves when DSP supports them.
-    for (int i = 1; i < numPoints; ++i)
-        path.lineTo (toPixels (pts[static_cast<size_t> (i)], bounds));
+    appendShapedSegment (path, bounds, pts[start], pts[attackPeak], p.attackCurve);
+    appendShapedSegment (path, bounds, pts[attackPeak], pts[decaySustain], p.decayCurve);
+    path.lineTo (toPixels (pts[sustainEnd], bounds));
+    appendShapedSegment (path, bounds, pts[sustainEnd], pts[releaseEnd], p.releaseCurve);
 
     return path;
 }

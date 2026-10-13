@@ -1,10 +1,10 @@
 #pragma once
 
+#include "dsp/EnvelopeCurve.h"
 #include <juce_graphics/juce_graphics.h>
 #include <array>
 
-// Geometry helper for the ADSR plot. Straight segments today; swap buildPath
-// interpolation later when curved envelope DSP lands.
+// Geometry helper for the ADSR plot. Timed corners + Bezier curve mid-handles.
 struct EnvelopeShape
 {
     struct Params
@@ -13,6 +13,9 @@ struct EnvelopeShape
         float decay = 0.1f;
         float sustain = 0.8f; // 0..1
         float release = 0.2f;
+        EnvelopeCurve::Handle attackCurve {};
+        EnvelopeCurve::Handle decayCurve {};
+        EnvelopeCurve::Handle releaseCurve {};
     };
 
     // Normalized plot coords: x in [0,1] across the component, y = level (0..1, up).
@@ -23,25 +26,37 @@ struct EnvelopeShape
     };
 
     static constexpr float sustainFraction = 0.22f;
-    static constexpr int numPoints = 5;
+    static constexpr int numCornerPoints = 5;
+    static constexpr int curveSamplesPerSegment = 24;
 
-    // Indices into the point array.
+    // Corner handles (time / sustain).
     enum Handle : int
     {
         start = 0,
         attackPeak = 1,
         decaySustain = 2,
         sustainEnd = 3,
-        releaseEnd = 4
+        releaseEnd = 4,
+        // Mid-segment curve handles (free 2D drag within the segment).
+        attackCurve = 5,
+        decayCurve = 6,
+        releaseCurve = 7
     };
 
-    // Equal A/D/R bands share (1 - sustainFraction); sustain band is fixed width.
-    static std::array<Point, numPoints>
+    static std::array<Point, numCornerPoints>
     buildPoints (const Params& p, const juce::NormalisableRange<float>& timeRange);
+
+    // On-curve Bezier handles in plot-normalized coords.
+    static std::array<Point, 3> buildCurveHandles (const Params& p,
+                                                   const juce::NormalisableRange<float>& timeRange);
 
     static juce::Path buildPath (juce::Rectangle<float> bounds, const Params& p,
                                  const juce::NormalisableRange<float>& timeRange);
 
     static juce::Point<float> toPixels (Point n, juce::Rectangle<float> bounds);
     static Point fromPixels (juce::Point<float> px, juce::Rectangle<float> bounds);
+
+    // Map a plot point on a segment into a clamped Bezier handle.
+    static EnvelopeCurve::Handle handleFromSegmentPoint (Point segmentStart, Point segmentEnd,
+                                                         Point plotPoint);
 };

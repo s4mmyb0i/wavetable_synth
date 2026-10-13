@@ -157,8 +157,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     timeRange.setSkewForCentre (0.5f); // A/D/R; avoid raw skew which jumps off the minimum
     const auto sustainRange = juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f};
 
+    // Bezier through-handle in segment unit space; (0.5, 0.5) = linear.
+    const auto curveAxisRange = juce::NormalisableRange<float> {0.0f, 1.0f, 0.001f};
+
+    auto addCurveHandle = [&] (const char* xID, const char* yID, const juce::String& name)
+    {
+        layout.add (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID {xID, 1}, name + " X", curveAxisRange, 0.5f));
+        layout.add (std::make_unique<juce::AudioParameterFloat> (
+            juce::ParameterID {yID, 1}, name + " Y", curveAxisRange, 0.5f));
+    };
+
     auto addAdsr = [&] (const char* attackID, const char* decayID, const char* sustainID,
-                        const char* releaseID, const juce::String& prefix)
+                        const char* releaseID, const char* attackCurveXID, const char* attackCurveYID,
+                        const char* decayCurveXID, const char* decayCurveYID,
+                        const char* releaseCurveXID, const char* releaseCurveYID,
+                        const juce::String& prefix)
     {
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID {attackID, 1}, prefix + " Attack", timeRange, 0.01f, secondsAttrs));
@@ -168,16 +182,27 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
             juce::ParameterID {sustainID, 1}, prefix + " Sustain", sustainRange, 0.8f));
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID {releaseID, 1}, prefix + " Release", timeRange, 0.2f, secondsAttrs));
+        addCurveHandle (attackCurveXID, attackCurveYID, prefix + " Attack Curve");
+        addCurveHandle (decayCurveXID, decayCurveYID, prefix + " Decay Curve");
+        addCurveHandle (releaseCurveXID, releaseCurveYID, prefix + " Release Curve");
     };
 
     addAdsr (ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain, ParamIDs::osc1Release,
+             ParamIDs::osc1AttackCurveX, ParamIDs::osc1AttackCurveY, ParamIDs::osc1DecayCurveX,
+             ParamIDs::osc1DecayCurveY, ParamIDs::osc1ReleaseCurveX, ParamIDs::osc1ReleaseCurveY,
              "Osc 1");
     addAdsr (ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain, ParamIDs::osc2Release,
+             ParamIDs::osc2AttackCurveX, ParamIDs::osc2AttackCurveY, ParamIDs::osc2DecayCurveX,
+             ParamIDs::osc2DecayCurveY, ParamIDs::osc2ReleaseCurveX, ParamIDs::osc2ReleaseCurveY,
              "Osc 2");
     addAdsr (ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain, ParamIDs::osc3Release,
+             ParamIDs::osc3AttackCurveX, ParamIDs::osc3AttackCurveY, ParamIDs::osc3DecayCurveX,
+             ParamIDs::osc3DecayCurveY, ParamIDs::osc3ReleaseCurveX, ParamIDs::osc3ReleaseCurveY,
              "Osc 3");
     addAdsr (ParamIDs::noiseAttack, ParamIDs::noiseDecay, ParamIDs::noiseSustain,
-             ParamIDs::noiseRelease, "Noise");
+             ParamIDs::noiseRelease, ParamIDs::noiseAttackCurveX, ParamIDs::noiseAttackCurveY,
+             ParamIDs::noiseDecayCurveX, ParamIDs::noiseDecayCurveY, ParamIDs::noiseReleaseCurveX,
+             ParamIDs::noiseReleaseCurveY, "Noise");
 
     return layout;
 }

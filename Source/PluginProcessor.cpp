@@ -175,26 +175,43 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     const float noiseCutoff = apvts_.getRawParameterValue (ParamIDs::noiseCutoff)->load();
     const float noiseResonance = apvts_.getRawParameterValue (ParamIDs::noiseResonance)->load();
 
-    // Per-source ADSR
+    // Per-source ADSR (+ Bezier curve handles)
     auto readEnv = [this] (const char* attackID, const char* decayID, const char* sustainID,
-                           const char* releaseID) -> Envelope::Parameters
+                           const char* releaseID, const char* attackCurveXID,
+                           const char* attackCurveYID, const char* decayCurveXID,
+                           const char* decayCurveYID, const char* releaseCurveXID,
+                           const char* releaseCurveYID) -> Envelope::Parameters
     {
         Envelope::Parameters p;
         p.attackSeconds = apvts_.getRawParameterValue (attackID)->load();
         p.decaySeconds = apvts_.getRawParameterValue (decayID)->load();
         p.sustainLevel = apvts_.getRawParameterValue (sustainID)->load();
         p.releaseSeconds = apvts_.getRawParameterValue (releaseID)->load();
+        p.attackCurveX = apvts_.getRawParameterValue (attackCurveXID)->load();
+        p.attackCurveY = apvts_.getRawParameterValue (attackCurveYID)->load();
+        p.decayCurveX = apvts_.getRawParameterValue (decayCurveXID)->load();
+        p.decayCurveY = apvts_.getRawParameterValue (decayCurveYID)->load();
+        p.releaseCurveX = apvts_.getRawParameterValue (releaseCurveXID)->load();
+        p.releaseCurveY = apvts_.getRawParameterValue (releaseCurveYID)->load();
         return p;
     };
 
-    const auto env1 = readEnv (ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain,
-                               ParamIDs::osc1Release);
-    const auto env2 = readEnv (ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain,
-                               ParamIDs::osc2Release);
-    const auto env3 = readEnv (ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain,
-                               ParamIDs::osc3Release);
-    const auto envNoise = readEnv (ParamIDs::noiseAttack, ParamIDs::noiseDecay,
-                                   ParamIDs::noiseSustain, ParamIDs::noiseRelease);
+    const auto env1 = readEnv (
+        ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain, ParamIDs::osc1Release,
+        ParamIDs::osc1AttackCurveX, ParamIDs::osc1AttackCurveY, ParamIDs::osc1DecayCurveX,
+        ParamIDs::osc1DecayCurveY, ParamIDs::osc1ReleaseCurveX, ParamIDs::osc1ReleaseCurveY);
+    const auto env2 = readEnv (
+        ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain, ParamIDs::osc2Release,
+        ParamIDs::osc2AttackCurveX, ParamIDs::osc2AttackCurveY, ParamIDs::osc2DecayCurveX,
+        ParamIDs::osc2DecayCurveY, ParamIDs::osc2ReleaseCurveX, ParamIDs::osc2ReleaseCurveY);
+    const auto env3 = readEnv (
+        ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain, ParamIDs::osc3Release,
+        ParamIDs::osc3AttackCurveX, ParamIDs::osc3AttackCurveY, ParamIDs::osc3DecayCurveX,
+        ParamIDs::osc3DecayCurveY, ParamIDs::osc3ReleaseCurveX, ParamIDs::osc3ReleaseCurveY);
+    const auto envNoise = readEnv (
+        ParamIDs::noiseAttack, ParamIDs::noiseDecay, ParamIDs::noiseSustain, ParamIDs::noiseRelease,
+        ParamIDs::noiseAttackCurveX, ParamIDs::noiseAttackCurveY, ParamIDs::noiseDecayCurveX,
+        ParamIDs::noiseDecayCurveY, ParamIDs::noiseReleaseCurveX, ParamIDs::noiseReleaseCurveY);
 
     for (int i = 0; i < synth_.getNumVoices(); ++i)
         if (SynthVoice* voice = dynamic_cast<SynthVoice*> (synth_.getVoice (i)))

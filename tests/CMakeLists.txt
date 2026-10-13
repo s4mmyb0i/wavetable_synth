@@ -11,6 +11,7 @@ add_executable(WavetableTests
     WavetableTests.cpp
     WavetableMipBankTests.cpp
     EnvelopeTests.cpp
+    EnvelopeCurveTests.cpp
     FilterTests.cpp
     MultiOscTests.cpp
     WavetableOscTests.cpp

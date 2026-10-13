@@ -65,19 +65,43 @@ inline constexpr const char* osc1Attack = "osc1Attack";
 inline constexpr const char* osc1Decay = "osc1Decay";
 inline constexpr const char* osc1Sustain = "osc1Sustain";
 inline constexpr const char* osc1Release = "osc1Release";
+inline constexpr const char* osc1AttackCurveX = "osc1AttackCurveX";
+inline constexpr const char* osc1AttackCurveY = "osc1AttackCurveY";
+inline constexpr const char* osc1DecayCurveX = "osc1DecayCurveX";
+inline constexpr const char* osc1DecayCurveY = "osc1DecayCurveY";
+inline constexpr const char* osc1ReleaseCurveX = "osc1ReleaseCurveX";
+inline constexpr const char* osc1ReleaseCurveY = "osc1ReleaseCurveY";
 
 inline constexpr const char* osc2Attack = "osc2Attack";
 inline constexpr const char* osc2Decay = "osc2Decay";
 inline constexpr const char* osc2Sustain = "osc2Sustain";
 inline constexpr const char* osc2Release = "osc2Release";
+inline constexpr const char* osc2AttackCurveX = "osc2AttackCurveX";
+inline constexpr const char* osc2AttackCurveY = "osc2AttackCurveY";
+inline constexpr const char* osc2DecayCurveX = "osc2DecayCurveX";
+inline constexpr const char* osc2DecayCurveY = "osc2DecayCurveY";
+inline constexpr const char* osc2ReleaseCurveX = "osc2ReleaseCurveX";
+inline constexpr const char* osc2ReleaseCurveY = "osc2ReleaseCurveY";
 
 inline constexpr const char* osc3Attack = "osc3Attack";
 inline constexpr const char* osc3Decay = "osc3Decay";
 inline constexpr const char* osc3Sustain = "osc3Sustain";
 inline constexpr const char* osc3Release = "osc3Release";
+inline constexpr const char* osc3AttackCurveX = "osc3AttackCurveX";
+inline constexpr const char* osc3AttackCurveY = "osc3AttackCurveY";
+inline constexpr const char* osc3DecayCurveX = "osc3DecayCurveX";
+inline constexpr const char* osc3DecayCurveY = "osc3DecayCurveY";
+inline constexpr const char* osc3ReleaseCurveX = "osc3ReleaseCurveX";
+inline constexpr const char* osc3ReleaseCurveY = "osc3ReleaseCurveY";
 
 inline constexpr const char* noiseAttack = "noiseAttack";
 inline constexpr const char* noiseDecay = "noiseDecay";
 inline constexpr const char* noiseSustain = "noiseSustain";
 inline constexpr const char* noiseRelease = "noiseRelease";
+inline constexpr const char* noiseAttackCurveX = "noiseAttackCurveX";
+inline constexpr const char* noiseAttackCurveY = "noiseAttackCurveY";
+inline constexpr const char* noiseDecayCurveX = "noiseDecayCurveX";
+inline constexpr const char* noiseDecayCurveY = "noiseDecayCurveY";
+inline constexpr const char* noiseReleaseCurveX = "noiseReleaseCurveX";
+inline constexpr const char* noiseReleaseCurveY = "noiseReleaseCurveY";
 } // namespace ParamIDs

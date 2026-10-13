@@ -289,14 +289,28 @@ void WavetableSynthAudioProcessorEditor::attachEnvelopeSource (int sourceIndex)
         const char* decay;
         const char* sustain;
         const char* release;
+        const char* attackCurveX;
+        const char* attackCurveY;
+        const char* decayCurveX;
+        const char* decayCurveY;
+        const char* releaseCurveX;
+        const char* releaseCurveY;
     };
 
     static constexpr Ids kIds[] = {
-        {ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain, ParamIDs::osc1Release},
-        {ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain, ParamIDs::osc2Release},
-        {ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain, ParamIDs::osc3Release},
+        {ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain, ParamIDs::osc1Release,
+         ParamIDs::osc1AttackCurveX, ParamIDs::osc1AttackCurveY, ParamIDs::osc1DecayCurveX,
+         ParamIDs::osc1DecayCurveY, ParamIDs::osc1ReleaseCurveX, ParamIDs::osc1ReleaseCurveY},
+        {ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain, ParamIDs::osc2Release,
+         ParamIDs::osc2AttackCurveX, ParamIDs::osc2AttackCurveY, ParamIDs::osc2DecayCurveX,
+         ParamIDs::osc2DecayCurveY, ParamIDs::osc2ReleaseCurveX, ParamIDs::osc2ReleaseCurveY},
+        {ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain, ParamIDs::osc3Release,
+         ParamIDs::osc3AttackCurveX, ParamIDs::osc3AttackCurveY, ParamIDs::osc3DecayCurveX,
+         ParamIDs::osc3DecayCurveY, ParamIDs::osc3ReleaseCurveX, ParamIDs::osc3ReleaseCurveY},
         {ParamIDs::noiseAttack, ParamIDs::noiseDecay, ParamIDs::noiseSustain,
-         ParamIDs::noiseRelease},
+         ParamIDs::noiseRelease, ParamIDs::noiseAttackCurveX, ParamIDs::noiseAttackCurveY,
+         ParamIDs::noiseDecayCurveX, ParamIDs::noiseDecayCurveY, ParamIDs::noiseReleaseCurveX,
+         ParamIDs::noiseReleaseCurveY},
     };
 
     const auto& ids = kIds[juce::jlimit (0, 3, sourceIndex)];
@@ -308,7 +322,9 @@ void WavetableSynthAudioProcessorEditor::attachEnvelopeSource (int sourceIndex)
     sustainAttachment_.reset();
     releaseAttachment_.reset();
 
-    envelopeEditor_.attach (apvts, ids.attack, ids.decay, ids.sustain, ids.release);
+    envelopeEditor_.attach (apvts, ids.attack, ids.decay, ids.sustain, ids.release,
+                            ids.attackCurveX, ids.attackCurveY, ids.decayCurveX, ids.decayCurveY,
+                            ids.releaseCurveX, ids.releaseCurveY);
     attackAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.attack, attackSlider_);
     decayAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.decay, decaySlider_);
     sustainAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.sustain, sustainSlider_);
