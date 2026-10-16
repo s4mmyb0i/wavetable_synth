@@ -43,6 +43,9 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     juce::MidiKeyboardState& getKeyboardState() { return keyboardState_; }
 
+    // 0..1 proportion of the audio callback budget used by processBlock.
+    double getCpuLoad() const { return loadMeasurer_.getLoadAsProportion(); }
+
     const Wavetable& getSineTable() const { return sineTable_; }
     const Wavetable& getTriangleTable() const { return triangleTable_; }
     const WavetableMipBank& getSawMipBank() const { return sawMipBank_; }
@@ -62,6 +65,7 @@ private:
     juce::Synthesiser synth_;
 
     juce::MidiKeyboardState keyboardState_;
+    juce::AudioProcessLoadMeasurer loadMeasurer_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessor)
 };

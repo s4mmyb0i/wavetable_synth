@@ -53,7 +53,7 @@ void WavetableSynthAudioProcessor::changeProgramName (int index, const juce::Str
 
 void WavetableSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    juce::ignoreUnused (samplesPerBlock);
+    loadMeasurer_.reset (sampleRate, samplesPerBlock);
     synth_.setCurrentPlaybackSampleRate (sampleRate);
 }
 
@@ -68,6 +68,7 @@ bool WavetableSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& la
 void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                                  juce::MidiBuffer& midiMessages)
 {
+    juce::AudioProcessLoadMeasurer::ScopedTimer loadTimer (loadMeasurer_, buffer.getNumSamples());
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
 

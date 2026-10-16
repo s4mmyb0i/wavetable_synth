@@ -12,12 +12,17 @@
 OR
 `ctest --test-dir build --output-on-failure`
 
+## October 13, 2026
+
+- Added curves for ADSR for attack, decay, release
+- TODO: Add features like mod matrix, user generated tables, additional filters, FM (?), granular (?), LFO, flanger, chorus
+- TODO: Find a way to make the synth create better lead sounds
+
 ## October 11, 2026
 
 - Added per osc ADSR
 - Unique noise filter
 - Additional UI fixes (interactive filter graph, toggle-able osc, resizable window)
-- TODO: Add features like mod matrix, user generated tables, additional filters, FM (?), granular (?), LFO, flanger, chorus
 
 ## October 10, 2026
 

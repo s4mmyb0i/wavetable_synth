@@ -3,6 +3,7 @@
 #include "PluginProcessor.h"
 #include "juce_audio_utils/juce_audio_utils.h"
 #include <initializer_list>
+#include "ui/CpuMeter.h"
 #include "ui/EnvelopeEditor.h"
 #include "ui/EnvSourceSwitch.h"
 #include "ui/FilterEditor.h"
@@ -55,6 +56,7 @@ private:
     SynthLookAndFeel lookAndFeel_;
 
     juce::Label titleLabel_;
+    CpuMeter cpuMeter_;
 
     // Osc 1
     SourceEnableLed osc1EnableLed_;

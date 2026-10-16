@@ -19,6 +19,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     WavetableSynthAudioProcessor& p)
     : AudioProcessorEditor (&p),
       processorRef (p),
+      cpuMeter_ (p),
       keyboard_ (p.getKeyboardState(), juce::MidiKeyboardComponent::horizontalKeyboard)
 {
     setLookAndFeel (&lookAndFeel_);
@@ -28,6 +29,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     titleLabel_.setColour (juce::Label::textColourId, SynthLookAndFeel::textPrimary);
     titleLabel_.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (titleLabel_);
+    addAndMakeVisible (cpuMeter_);
 
     setupRotary (osc1LevelSlider_, osc1LevelLabel_, "Level");
     setupRotary (osc1UnisonCountSlider_, osc1UnisonCountLabel_, "Unison");
@@ -529,6 +531,9 @@ void WavetableSynthAudioProcessorEditor::resized()
     bounds.removeFromBottom (12);
 
     auto header = bounds.removeFromTop (kHeaderH);
+    constexpr int kCpuW = 140;
+    cpuMeter_.setBounds (header.removeFromRight (kCpuW).reduced (0, 2));
+    header.removeFromRight (10);
     titleLabel_.setBounds (header);
 
     bounds.removeFromTop (8);

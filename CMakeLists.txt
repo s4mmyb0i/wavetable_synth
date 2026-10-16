@@ -44,6 +44,7 @@ target_sources(WavetableSynth
         Source/ui/FilterEditor.cpp
         Source/ui/FilterSourceSwitch.cpp
         Source/ui/SourceEnableLed.cpp
+        Source/ui/CpuMeter.cpp
         Source/ui/OscWaveformDisplay.cpp
         Source/constants.h
         Source/dsp/Wavetable.cpp

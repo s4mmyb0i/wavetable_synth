@@ -242,53 +242,93 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int st
 {
     if (! isEnvelopeActive()) return;
 
+    const bool runOsc1 = osc1On_ && osc1Level_ > 0.0f;
+    const bool runOsc2 = osc2On_ && osc2Level_ > 0.0f;
+    const bool runOsc3 = osc3On_ && osc3Level_ > 0.0f;
+    const bool runNoise = noiseOn_ && noiseLevel_ > 0.0f;
+    const bool runOscBus = runOsc1 || runOsc2 || runOsc3;
+
+    const int numChannels = outputBuffer.getNumChannels();
+    float* left = numChannels >= 1 ? outputBuffer.getWritePointer (0, startSample) : nullptr;
+    float* right = numChannels >= 2 ? outputBuffer.getWritePointer (1, startSample) : nullptr;
+
+    // All sources muted: still tick envelopes so note-off / voice lifetime stay correct.
+    if (! runOscBus && ! runNoise)
+    {
+        for (int i = 0; i < numSamples; ++i)
+        {
+            envelope1_.getNextSample();
+            envelope2_.getNextSample();
+            envelope3_.getNextSample();
+            envelope4_.getNextSample();
+
+            if (! isEnvelopeActive())
+            {
+                clearCurrentNote();
+                level_ = 0.0f;
+                break;
+            }
+        }
+        return;
+    }
+
+    constexpr float kMixScale = 0.25f;
+
     for (int i = 0; i < numSamples; ++i)
     {
-        float osc1Sample = osc1_.process() * osc1Level_ * (osc1On_ ? 1.0f : 0.0f);
-        float osc2Sample = osc2_.process() * osc2Level_ * (osc2On_ ? 1.0f : 0.0f);
-        float osc3Sample = osc3_.process() * osc3Level_ * (osc3On_ ? 1.0f : 0.0f);
-        float noiseSample = noise_.process() * noiseLevel_ * (noiseOn_ ? 1.0f : 0.0f);
+        // Always advance envelopes so re-enabling a source mid-note keeps phase with ADSR.
+        const float env1 = envelope1_.getNextSample();
+        const float env2 = envelope2_.getNextSample();
+        const float env3 = envelope3_.getNextSample();
+        const float env4 = envelope4_.getNextSample();
 
-        osc1Sample = osc1Sample * envelope1_.getNextSample();
-        osc2Sample = osc2Sample * envelope2_.getNextSample();
-        osc3Sample = osc3Sample * envelope3_.getNextSample();
-        noiseSample = noiseSample * envelope4_.getNextSample();
+        float osc1L = 0.0f, osc1R = 0.0f;
+        float osc2L = 0.0f, osc2R = 0.0f;
+        float osc3L = 0.0f, osc3R = 0.0f;
 
-        float osc1L, osc1R;
-        float osc2L, osc2R;
-        float osc3L, osc3R;
-        float noiseL, noiseR;
+        if (runOsc1)
+        {
+            const float s = osc1_.process() * osc1Level_ * env1;
+            applyPan (s, osc1Pan_, osc1L, osc1R);
+        }
+        if (runOsc2)
+        {
+            const float s = osc2_.process() * osc2Level_ * env2;
+            applyPan (s, osc2Pan_, osc2L, osc2R);
+        }
+        if (runOsc3)
+        {
+            const float s = osc3_.process() * osc3Level_ * env3;
+            applyPan (s, osc3Pan_, osc3L, osc3R);
+        }
 
-        applyPan (osc1Sample, osc1Pan_, osc1L, osc1R);
-        applyPan (osc2Sample, osc2Pan_, osc2L, osc2R);
-        applyPan (osc3Sample, osc3Pan_, osc3L, osc3R);
-        applyPan (noiseSample, noisePan_, noiseL, noiseR);
+        float oscFilteredL = 0.0f, oscFilteredR = 0.0f;
+        if (runOscBus)
+        {
+            const float oscL = (osc1L + osc2L + osc3L) * kMixScale;
+            const float oscR = (osc1R + osc2R + osc3R) * kMixScale;
+            oscFilter_.process (oscL, oscR, oscFilteredL, oscFilteredR);
+        }
 
-        // Four unit-gain sources summed; scale so full levels stay near ±1 peak.
-        constexpr float kMixScale = 0.25f;
-        const float oscL = (osc1L + osc2L + osc3L) * kMixScale;
-        const float oscR = (osc1R + osc2R + osc3R) * kMixScale;
-        noiseL = noiseL * kMixScale;
-        noiseR = noiseR * kMixScale;
-
-        float oscFilteredL, oscFilteredR;
-        float noiseFilteredL, noiseFilteredR;
-
-        oscFilter_.process (oscL, oscR, oscFilteredL, oscFilteredR);
-        noiseFilter_.process (noiseL, noiseR, noiseFilteredL, noiseFilteredR);
+        float noiseFilteredL = 0.0f, noiseFilteredR = 0.0f;
+        if (runNoise)
+        {
+            float noiseL, noiseR;
+            const float s = noise_.process() * noiseLevel_ * env4;
+            applyPan (s, noisePan_, noiseL, noiseR);
+            noiseFilter_.process (noiseL * kMixScale, noiseR * kMixScale, noiseFilteredL,
+                                  noiseFilteredR);
+        }
 
         const float sampleL = (oscFilteredL + noiseFilteredL) * level_;
         const float sampleR = (oscFilteredR + noiseFilteredR) * level_;
 
-        const int numChannels = outputBuffer.getNumChannels();
-
-        if (numChannels >= 2)
+        if (left != nullptr && right != nullptr)
         {
-            outputBuffer.addSample (0, startSample + i, sampleL);
-            outputBuffer.addSample (1, startSample + i, sampleR);
+            left[i] += sampleL;
+            right[i] += sampleR;
         }
-        else if (numChannels >= 1)
-            outputBuffer.addSample (0, startSample + i, (sampleL + sampleR) * 0.5f);
+        else if (left != nullptr) { left[i] += (sampleL + sampleR) * 0.5f; }
 
         if (! isEnvelopeActive())
         {
