@@ -3,7 +3,8 @@
 #include "dsp/WavetableOsc.h"
 #include "dsp/NoiseGenerator.h"
 #include "dsp/Envelope.h"
-#include "dsp/Filter.h"
+#include "dsp/filter/Filter.h"
+
 #include <juce_audio_basics/juce_audio_basics.h>
 
 class Wavetable;
@@ -31,6 +32,8 @@ public:
     void renderNextBlock (juce::AudioBuffer<float>& outputBuffer, int startSample,
                           int numSamples) override;
 
+    void legatoToNote (int midiNoteNumber);
+
     using juce::SynthesiserVoice::renderNextBlock;
     void setCurrentPlaybackSampleRate (double newRate) override;
 
@@ -49,8 +52,10 @@ public:
                                 const Envelope::Parameters& param3,
                                 const Envelope::Parameters& param4);
 
+    void setOscFilterType (FilterType type) { oscFilter_.setType (type); }
     void setOscFilterCutoff (float cutoffHz) { oscFilter_.setCutoffHz (cutoffHz); }
     void setOscFilterResonance (float resonance01) { oscFilter_.setResonance (resonance01); }
+    void setNoiseFilterType (FilterType type) { noiseFilter_.setType (type); }
     void setNoiseFilterCutoff (float cutoffHz) { noiseFilter_.setCutoffHz (cutoffHz); }
     void setNoiseFilterResonance (float resonance01) { noiseFilter_.setResonance (resonance01); }
 

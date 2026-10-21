@@ -11,19 +11,28 @@ juce::StringArray warpChoices()
 
 juce::StringArray noiseChoices()
 { return juce::StringArray {"White", "Pink"}; } // matches NoiseGenerator::Type
+
+juce::StringArray voiceModeChoices()
+{ return juce::StringArray {"Poly", "Mono", "Legato"}; } // matches VoiceMode
+
+juce::StringArray filterTypeChoices()
+{ return juce::StringArray {"Low Pass", "High Pass", "Band Pass"}; } // matches FilterType
 } // namespace
 
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
+    layout.add (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID {ParamIDs::voiceMode, 1}, "Voice Mode", voiceModeChoices(), 0));
+
     // Per-source enable
-    layout.add (std::make_unique<juce::AudioParameterBool> (
-        juce::ParameterID {ParamIDs::osc1On, 1}, "Osc 1 On", true));
-    layout.add (std::make_unique<juce::AudioParameterBool> (
-        juce::ParameterID {ParamIDs::osc2On, 1}, "Osc 2 On", true));
-    layout.add (std::make_unique<juce::AudioParameterBool> (
-        juce::ParameterID {ParamIDs::osc3On, 1}, "Osc 3 On", true));
+    layout.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID {ParamIDs::osc1On, 1},
+                                                            "Osc 1 On", true));
+    layout.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID {ParamIDs::osc2On, 1},
+                                                            "Osc 2 On", true));
+    layout.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID {ParamIDs::osc3On, 1},
+                                                            "Osc 3 On", true));
     layout.add (std::make_unique<juce::AudioParameterBool> (
         juce::ParameterID {ParamIDs::noiseOn, 1}, "Noise On", true));
 
@@ -140,11 +149,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     const auto resRange = juce::NormalisableRange<float> {0.0f, 1.0f, 0.01f};
     const auto hzAttrs = juce::AudioParameterFloatAttributes().withLabel ("Hz");
 
+    layout.add (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID {ParamIDs::filterType, 1}, "Osc 1-3 Filter Type", filterTypeChoices(),
+        0));
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::cutoff, 1}, "Osc 1-3 Cutoff", cutoffRange, 200.0f, hzAttrs));
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::resonance, 1}, "Osc 1-3 Resonance", resRange, 0.0f));
 
+    layout.add (std::make_unique<juce::AudioParameterChoice> (
+        juce::ParameterID {ParamIDs::noiseFilterType, 1}, "Noise Filter Type", filterTypeChoices(),
+        0));
     layout.add (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID {ParamIDs::noiseCutoff, 1}, "Noise Cutoff", makeCutoffRange(), 800.0f,
         hzAttrs));
@@ -169,10 +184,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     };
 
     auto addAdsr = [&] (const char* attackID, const char* decayID, const char* sustainID,
-                        const char* releaseID, const char* attackCurveXID, const char* attackCurveYID,
-                        const char* decayCurveXID, const char* decayCurveYID,
-                        const char* releaseCurveXID, const char* releaseCurveYID,
-                        const juce::String& prefix)
+                        const char* releaseID, const char* attackCurveXID,
+                        const char* attackCurveYID, const char* decayCurveXID,
+                        const char* decayCurveYID, const char* releaseCurveXID,
+                        const char* releaseCurveYID, const juce::String& prefix)
     {
         layout.add (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID {attackID, 1}, prefix + " Attack", timeRange, 0.01f, secondsAttrs));
@@ -187,18 +202,18 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         addCurveHandle (releaseCurveXID, releaseCurveYID, prefix + " Release Curve");
     };
 
-    addAdsr (ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain, ParamIDs::osc1Release,
-             ParamIDs::osc1AttackCurveX, ParamIDs::osc1AttackCurveY, ParamIDs::osc1DecayCurveX,
-             ParamIDs::osc1DecayCurveY, ParamIDs::osc1ReleaseCurveX, ParamIDs::osc1ReleaseCurveY,
-             "Osc 1");
-    addAdsr (ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain, ParamIDs::osc2Release,
-             ParamIDs::osc2AttackCurveX, ParamIDs::osc2AttackCurveY, ParamIDs::osc2DecayCurveX,
-             ParamIDs::osc2DecayCurveY, ParamIDs::osc2ReleaseCurveX, ParamIDs::osc2ReleaseCurveY,
-             "Osc 2");
-    addAdsr (ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain, ParamIDs::osc3Release,
-             ParamIDs::osc3AttackCurveX, ParamIDs::osc3AttackCurveY, ParamIDs::osc3DecayCurveX,
-             ParamIDs::osc3DecayCurveY, ParamIDs::osc3ReleaseCurveX, ParamIDs::osc3ReleaseCurveY,
-             "Osc 3");
+    addAdsr (ParamIDs::osc1Attack, ParamIDs::osc1Decay, ParamIDs::osc1Sustain,
+             ParamIDs::osc1Release, ParamIDs::osc1AttackCurveX, ParamIDs::osc1AttackCurveY,
+             ParamIDs::osc1DecayCurveX, ParamIDs::osc1DecayCurveY, ParamIDs::osc1ReleaseCurveX,
+             ParamIDs::osc1ReleaseCurveY, "Osc 1");
+    addAdsr (ParamIDs::osc2Attack, ParamIDs::osc2Decay, ParamIDs::osc2Sustain,
+             ParamIDs::osc2Release, ParamIDs::osc2AttackCurveX, ParamIDs::osc2AttackCurveY,
+             ParamIDs::osc2DecayCurveX, ParamIDs::osc2DecayCurveY, ParamIDs::osc2ReleaseCurveX,
+             ParamIDs::osc2ReleaseCurveY, "Osc 2");
+    addAdsr (ParamIDs::osc3Attack, ParamIDs::osc3Decay, ParamIDs::osc3Sustain,
+             ParamIDs::osc3Release, ParamIDs::osc3AttackCurveX, ParamIDs::osc3AttackCurveY,
+             ParamIDs::osc3DecayCurveX, ParamIDs::osc3DecayCurveY, ParamIDs::osc3ReleaseCurveX,
+             ParamIDs::osc3ReleaseCurveY, "Osc 3");
     addAdsr (ParamIDs::noiseAttack, ParamIDs::noiseDecay, ParamIDs::noiseSustain,
              ParamIDs::noiseRelease, ParamIDs::noiseAttackCurveX, ParamIDs::noiseAttackCurveY,
              ParamIDs::noiseDecayCurveX, ParamIDs::noiseDecayCurveY, ParamIDs::noiseReleaseCurveX,

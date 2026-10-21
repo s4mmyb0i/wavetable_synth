@@ -8,10 +8,12 @@
 #include "ui/EnvSourceSwitch.h"
 #include "ui/FilterEditor.h"
 #include "ui/FilterSourceSwitch.h"
+#include "ui/FilterTypeSwitch.h"
 #include "ui/NoiseTypeSwitch.h"
 #include "ui/SourceEnableLed.h"
 #include "ui/OscWaveformDisplay.h"
 #include "ui/SynthLookAndFeel.h"
+#include "ui/VoiceModeSwitch.h"
 #include "ui/WaveSelectKnob.h"
 #include "ui/WarpModeSwitch.h"
 
@@ -23,8 +25,11 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    void visibilityChanged() override;
+    bool keyPressed (const juce::KeyPress& key) override;
 
 private:
+    void shiftComputerKeyboardOctave (int delta);
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
     void setupRotary (juce::Slider& slider, juce::Label& label, const juce::String& name,
@@ -34,10 +39,11 @@ private:
     void layoutOscPanel (juce::Rectangle<int> bounds, OscWaveformDisplay& waveform,
                          WaveSelectKnob& waveKnob, WarpModeSwitch& warpSwitch, juce::Slider& level,
                          juce::Label& levelLabel, juce::Slider* detune, juce::Label* detuneLabel,
-                         juce::Slider& uniCount, juce::Label& uniCountLabel, juce::Slider& uniDetune,
-                         juce::Label& uniDetuneLabel, juce::Slider& warpAmount,
-                         juce::Label& warpAmountLabel, juce::Slider& position,
-                         juce::Label& positionLabel, juce::Slider& pan, juce::Label& panLabel);
+                         juce::Slider& uniCount, juce::Label& uniCountLabel,
+                         juce::Slider& uniDetune, juce::Label& uniDetuneLabel,
+                         juce::Slider& warpAmount, juce::Label& warpAmountLabel,
+                         juce::Slider& position, juce::Label& positionLabel, juce::Slider& pan,
+                         juce::Label& panLabel);
     void paintSection (juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& title,
                        bool dimmed = false);
     void updatePositionEnabled (juce::Slider& waveSlider, juce::Slider& positionSlider,
@@ -56,6 +62,7 @@ private:
     SynthLookAndFeel lookAndFeel_;
 
     juce::Label titleLabel_;
+    VoiceModeSwitch voiceModeSwitch_;
     CpuMeter cpuMeter_;
 
     // Osc 1
@@ -123,8 +130,9 @@ private:
     std::unique_ptr<SliderAttachment> noiseLevelAttachment_;
     std::unique_ptr<SliderAttachment> noisePanAttachment_;
 
-    // Filter (Osc 1-3 bus | Noise selector rebinds graph + knobs)
+    // Filter (Osc 1-3 bus | Noise selector rebinds graph + knobs + type)
     FilterSourceSwitch filterSourceSwitch_;
+    FilterTypeSwitch filterTypeSwitch_;
     juce::Label filterHintLabel_;
     FilterEditor filterEditor_;
     juce::Slider cutoffSlider_, resonanceSlider_;
@@ -150,6 +158,7 @@ private:
     juce::Rectangle<int> envSectionBounds_;
 
     juce::MidiKeyboardComponent keyboard_;
+    int computerKeyboardOctave_ = 4; // A key = C in this octave
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessorEditor)
 };

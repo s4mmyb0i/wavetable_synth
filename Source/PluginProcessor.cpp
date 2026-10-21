@@ -72,6 +72,10 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     juce::ScopedNoDenormals noDenormals;
     buffer.clear();
 
+    const int voiceModeIdx =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::voiceMode)->load());
+    synth_.setVoiceMode (static_cast<VoiceMode> (juce::jlimit (0, 2, voiceModeIdx)));
+
     // Per-source enable
     const bool osc1On = apvts_.getRawParameterValue (ParamIDs::osc1On)->load() > 0.5f;
     const bool osc2On = apvts_.getRawParameterValue (ParamIDs::osc2On)->load() > 0.5f;
@@ -171,6 +175,14 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     const float noisePan = apvts_.getRawParameterValue (ParamIDs::noisePan)->load();
 
     // Filters
+    const int oscFilterTypeIdx =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::filterType)->load());
+    const int noiseFilterTypeIdx =
+        static_cast<int> (apvts_.getRawParameterValue (ParamIDs::noiseFilterType)->load());
+    const auto oscFilterType =
+        static_cast<FilterType> (juce::jlimit (0, 2, oscFilterTypeIdx));
+    const auto noiseFilterType =
+        static_cast<FilterType> (juce::jlimit (0, 2, noiseFilterTypeIdx));
     const float oscCutoff = apvts_.getRawParameterValue (ParamIDs::cutoff)->load();
     const float oscResonance = apvts_.getRawParameterValue (ParamIDs::resonance)->load();
     const float noiseCutoff = apvts_.getRawParameterValue (ParamIDs::noiseCutoff)->load();
@@ -233,8 +245,10 @@ void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
             voice->setOscUnison (1, osc2UnisonCount, osc2UnisonDetune);
             voice->setOscUnison (2, osc3UnisonCount, osc3UnisonDetune);
 
+            voice->setOscFilterType (oscFilterType);
             voice->setOscFilterCutoff (oscCutoff);
             voice->setOscFilterResonance (oscResonance);
+            voice->setNoiseFilterType (noiseFilterType);
             voice->setNoiseFilterCutoff (noiseCutoff);
             voice->setNoiseFilterResonance (noiseResonance);
             voice->setEnvelopeParameters (env1, env2, env3, envNoise);

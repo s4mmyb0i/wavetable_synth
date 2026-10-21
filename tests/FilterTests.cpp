@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "dsp/Filter.h"
+#include "dsp/filter/Filter.h"
 
 #include <cmath>
 
@@ -91,6 +91,78 @@ TEST_CASE ("cutoff near nyquist stays stable with resonance", "[filter]")
         REQUIRE (std::isfinite (yL));
         REQUIRE (std::isfinite (yR));
     }
+}
+
+TEST_CASE ("high-pass attenuates DC / low frequencies", "[filter]")
+{
+    Filter filter;
+    filter.setSampleRate (48000.0f);
+    filter.setCutoffHz (2000.0f);
+    filter.setResonance (0.0f);
+    filter.setType (FilterType::highPass);
+    filter.reset();
+
+    // Steady DC should settle near zero through HP.
+    float yL = 0.0f, yR = 0.0f;
+    for (int i = 0; i < 4096; ++i) processMono (filter, 1.0f, yL, yR);
+    REQUIRE (std::abs (yL) < 0.05f);
+
+    // High frequency (near Nyquist/4) should pass more than a low tone.
+    filter.reset();
+    float lowEnergy = 0.0f;
+    const float lowPhaseInc = 2.0f * 3.14159265f * 80.0f / 48000.0f;
+    float phase = 0.0f;
+    for (int i = 0; i < 2048; ++i)
+    {
+        processMono (filter, std::sin (phase), yL, yR);
+        lowEnergy += yL * yL;
+        phase += lowPhaseInc;
+    }
+
+    filter.reset();
+    float highEnergy = 0.0f;
+    const float highPhaseInc = 2.0f * 3.14159265f * 8000.0f / 48000.0f;
+    phase = 0.0f;
+    for (int i = 0; i < 2048; ++i)
+    {
+        processMono (filter, std::sin (phase), yL, yR);
+        highEnergy += yL * yL;
+        phase += highPhaseInc;
+    }
+
+    REQUIRE (highEnergy > lowEnergy * 4.0f);
+}
+
+TEST_CASE ("band-pass peaks near cutoff", "[filter]")
+{
+    Filter filter;
+    filter.setSampleRate (48000.0f);
+    filter.setCutoffHz (1000.0f);
+    filter.setResonance (0.7f);
+    filter.setType (FilterType::bandPass);
+    filter.reset();
+
+    auto toneEnergy = [&] (float freqHz)
+    {
+        filter.reset();
+        float energy = 0.0f;
+        float yL = 0.0f, yR = 0.0f;
+        const float inc = 2.0f * 3.14159265f * freqHz / 48000.0f;
+        float phase = 0.0f;
+        for (int i = 0; i < 4096; ++i)
+        {
+            processMono (filter, std::sin (phase), yL, yR);
+            if (i >= 2048) energy += yL * yL;
+            phase += inc;
+        }
+        return energy;
+    };
+
+    const float near = toneEnergy (1000.0f);
+    const float farLow = toneEnergy (100.0f);
+    const float farHigh = toneEnergy (8000.0f);
+    REQUIRE (near > farLow);
+    REQUIRE (near > farHigh);
 }
 
 TEST_CASE ("stereo channels have independent state", "[filter]")

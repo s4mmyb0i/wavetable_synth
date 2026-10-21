@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dsp/filter/Filter.h"
 #include <juce_graphics/juce_graphics.h>
 #include <cmath>
 
@@ -12,15 +13,24 @@ struct FilterResponse
     static constexpr float minDb = -24.0f;
     static constexpr float maxDb = 24.0f;
 
-    // Analog 2-pole LP magnitude approximating the voice SVF (R = 2 - 1.9 * res).
-    static float magnitude (float freqHz, float cutoffHz, float resonance01)
+    // Analog 2-pole magnitude approximating the voice SVF (R = 2 - 1.9 * res).
+    static float magnitude (float freqHz, float cutoffHz, float resonance01, FilterType type)
     {
         const float R = 2.0f - 1.9f * juce::jlimit (0.0f, 1.0f, resonance01);
         const float Q = 1.0f / juce::jmax (R, 0.05f);
         const float x = freqHz / juce::jmax (cutoffHz, 1.0f);
         const float term = 1.0f - x * x;
         const float denom = std::sqrt (term * term + (x / Q) * (x / Q));
-        return 1.0f / juce::jmax (denom, 1.0e-6f);
+        const float inv = 1.0f / juce::jmax (denom, 1.0e-6f);
+
+        switch (type)
+        {
+        case FilterType::lowPass: return inv;
+        case FilterType::highPass: return (x * x) * inv;
+        case FilterType::bandPass: return (x / Q) * inv;
+        }
+
+        return inv;
     }
 
     static float magnitudeToDb (float mag)
@@ -61,21 +71,22 @@ struct FilterResponse
     }
 
     // Handle sits at cutoff on the response curve.
-    static juce::Point<float> handleNorm (float cutoffHz, float resonance01)
+    static juce::Point<float> handleNorm (float cutoffHz, float resonance01, FilterType type)
     {
-        const float db = magnitudeToDb (magnitude (cutoffHz, cutoffHz, resonance01));
+        const float db =
+            magnitudeToDb (magnitude (cutoffHz, cutoffHz, resonance01, type));
         return {freqToNormX (cutoffHz), dbToNormY (db)};
     }
 
     static juce::Path buildPath (juce::Rectangle<float> bounds, float cutoffHz, float resonance01,
-                                 int numPoints = 96)
+                                 FilterType type, int numPoints = 96)
     {
         juce::Path path;
         for (int i = 0; i < numPoints; ++i)
         {
             const float t = static_cast<float> (i) / static_cast<float> (numPoints - 1);
             const float hz = normXToFreq (t);
-            const float db = magnitudeToDb (magnitude (hz, cutoffHz, resonance01));
+            const float db = magnitudeToDb (magnitude (hz, cutoffHz, resonance01, type));
             const auto pt = toPixels (t, dbToNormY (db), bounds);
             if (i == 0)
                 path.startNewSubPath (pt);

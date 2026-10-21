@@ -37,12 +37,14 @@ target_sources(WavetableSynth
         Source/ui/SynthLookAndFeel.cpp
         Source/ui/WaveSelectKnob.cpp
         Source/ui/WarpModeSwitch.cpp
+        Source/ui/VoiceModeSwitch.cpp
         Source/ui/NoiseTypeSwitch.cpp
         Source/ui/EnvSourceSwitch.cpp
         Source/ui/EnvelopeShape.cpp
         Source/ui/EnvelopeEditor.cpp
         Source/ui/FilterEditor.cpp
         Source/ui/FilterSourceSwitch.cpp
+        Source/ui/FilterTypeSwitch.cpp
         Source/ui/SourceEnableLed.cpp
         Source/ui/CpuMeter.cpp
         Source/ui/OscWaveformDisplay.cpp
@@ -51,9 +53,10 @@ target_sources(WavetableSynth
         Source/dsp/WavetableMipBank.cpp
         Source/dsp/WavetableOsc.cpp
         Source/dsp/Envelope.cpp
-        Source/dsp/Filter.cpp
+        Source/dsp/filter/Filter.cpp
         Source/synth/SynthSound.h
         Source/synth/SynthVoice.cpp
+        Source/synth/WavetableSynthesizer.cpp
         Source/params/ParameterLayout.cpp)
 
 target_include_directories(WavetableSynth

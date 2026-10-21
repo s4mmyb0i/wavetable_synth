@@ -3,6 +3,7 @@
 #include "dsp/Wavetable.h"
 #include "dsp/WavetableBank.h"
 #include "dsp/WavetableMipBank.h"
+#include "synth/WavetableSynthesizer.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -62,7 +63,7 @@ private:
     WavetableBank morphBank_ = WavetableBank::makeBasicMorph();
 
     juce::AudioProcessorValueTreeState apvts_;
-    juce::Synthesiser synth_;
+    WavetableSynthesizer synth_;
 
     juce::MidiKeyboardState keyboardState_;
     juce::AudioProcessLoadMeasurer loadMeasurer_;

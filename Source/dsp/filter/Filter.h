@@ -1,5 +1,12 @@
 #pragma once
 
+enum class FilterType
+{
+    lowPass,
+    highPass,
+    bandPass
+};
+
 // Process one sample at a time. State lives here.
 class Filter
 {
@@ -7,6 +14,8 @@ public:
     void setSampleRate (float sampleRate);
     void setCutoffHz (float cutoffHz);
     void setResonance (float resonance01);
+
+    void setType (FilterType type) { filterType_ = type; }
 
     void reset();
 
@@ -20,6 +29,8 @@ private:
     float sampleRate_ = 44100.0f;
     float cutoffHz_ = 1000.0f;
     float resonance_ = 0.0f;
+
+    FilterType filterType_ = FilterType::lowPass;
 
     float g_ = 0.0f;
     float R_ = 0.0f;

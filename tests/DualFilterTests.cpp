@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "dsp/Filter.h"
+#include "dsp/filter/Filter.h"
 
 #include <cmath>
 

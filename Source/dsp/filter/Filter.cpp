@@ -1,5 +1,5 @@
-#include "dsp/Filter.h"
-#include "MathConstants.h"
+#include "dsp/filter/Filter.h"
+#include "dsp/MathConstants.h"
 
 #include <algorithm>
 #include <cmath>
@@ -44,6 +44,14 @@ float Filter::processChannel (float in, float& lp, float& bp)
     const float hp = in - lp - R_ * bp;
     bp += g_ * hp;
     lp += g_ * bp;
+
+    switch (filterType_)
+    {
+    case FilterType::lowPass: return lp;
+    case FilterType::highPass: return hp;
+    case FilterType::bandPass: return bp;
+    }
+
     return lp;
 }
 

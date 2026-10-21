@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dsp/filter/Filter.h"
 #include "ui/FilterResponse.h"
 #include "ui/SynthLookAndFeel.h"
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -13,7 +14,7 @@ public:
     ~FilterEditor() override;
 
     void attach (juce::AudioProcessorValueTreeState& apvts, const juce::String& cutoffID,
-                 const juce::String& resonanceID);
+                 const juce::String& resonanceID, const juce::String& typeID);
 
     void paint (juce::Graphics& g) override;
     void resized() override;
@@ -28,14 +29,17 @@ private:
     void parameterValueChanged (int parameterIndex, float newValue) override;
     void parameterGestureChanged (int, bool) override {}
 
+    FilterType currentType() const;
     juce::Rectangle<float> plotBounds() const;
     bool hitTestHandle (juce::Point<float> pos) const;
     void applyDrag (juce::Point<float> pos);
     void setParamValue (juce::AudioParameterFloat* param, float denormalised);
     void syncCursor (bool overHandle);
+    void forEachParam (const std::function<void (juce::AudioProcessorParameter*)>& fn) const;
 
     juce::AudioParameterFloat* cutoff_ = nullptr;
     juce::AudioParameterFloat* resonance_ = nullptr;
+    juce::AudioParameterChoice* type_ = nullptr;
 
     bool dragging_ = false;
     bool hover_ = false;

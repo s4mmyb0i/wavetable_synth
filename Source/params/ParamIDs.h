@@ -2,6 +2,9 @@
 
 namespace ParamIDs
 {
+// Voice mode: Poly | Mono | Legato (matches VoiceMode enum)
+inline constexpr const char* voiceMode = "voiceMode";
+
 // Per-source enable (LED power toggles)
 inline constexpr const char* osc1On = "osc1On";
 inline constexpr const char* osc2On = "osc2On";
@@ -52,11 +55,13 @@ inline constexpr const char* noiseType = "noiseType";
 inline constexpr const char* noiseLevel = "noiseLevel";
 inline constexpr const char* noisePan = "noisePan";
 
-// Osc sum filter
+// Osc sum filter (type: Low Pass | High Pass | Band Pass)
+inline constexpr const char* filterType = "filterType";
 inline constexpr const char* cutoff = "cutoff";
 inline constexpr const char* resonance = "resonance";
 
 // Noise filter (independent of osc filter)
+inline constexpr const char* noiseFilterType = "noiseFilterType";
 inline constexpr const char* noiseCutoff = "noiseCutoff";
 inline constexpr const char* noiseResonance = "noiseResonance";
 

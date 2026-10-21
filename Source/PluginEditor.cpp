@@ -17,9 +17,7 @@ constexpr int kMorphWaveIndex = 4;
 
 WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     WavetableSynthAudioProcessor& p)
-    : AudioProcessorEditor (&p),
-      processorRef (p),
-      cpuMeter_ (p),
+    : AudioProcessorEditor (&p), processorRef (p), cpuMeter_ (p),
       keyboard_ (p.getKeyboardState(), juce::MidiKeyboardComponent::horizontalKeyboard)
 {
     setLookAndFeel (&lookAndFeel_);
@@ -29,6 +27,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     titleLabel_.setColour (juce::Label::textColourId, SynthLookAndFeel::textPrimary);
     titleLabel_.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (titleLabel_);
+    addAndMakeVisible (voiceModeSwitch_);
     addAndMakeVisible (cpuMeter_);
 
     setupRotary (osc1LevelSlider_, osc1LevelLabel_, "Level");
@@ -77,6 +76,8 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     setupRotary (releaseSlider_, releaseLabel_, "R", " s");
 
     auto& apvts = processorRef.getAPVTS();
+
+    voiceModeSwitch_.attach (apvts, ParamIDs::voiceMode);
 
     osc1WaveKnob_.attach (apvts, ParamIDs::osc1Wave);
     osc2WaveKnob_.attach (apvts, ParamIDs::osc2Wave);
@@ -145,19 +146,19 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     osc3UnisonDetuneAttachment_ = std::make_unique<SliderAttachment> (
         apvts, ParamIDs::osc3UnisonDetune, osc3UnisonDetuneSlider_);
 
-    osc1WarpAmountAttachment_ = std::make_unique<SliderAttachment> (
-        apvts, ParamIDs::osc1WarpAmount, osc1WarpAmountSlider_);
-    osc2WarpAmountAttachment_ = std::make_unique<SliderAttachment> (
-        apvts, ParamIDs::osc2WarpAmount, osc2WarpAmountSlider_);
-    osc3WarpAmountAttachment_ = std::make_unique<SliderAttachment> (
-        apvts, ParamIDs::osc3WarpAmount, osc3WarpAmountSlider_);
+    osc1WarpAmountAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc1WarpAmount, osc1WarpAmountSlider_);
+    osc2WarpAmountAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc2WarpAmount, osc2WarpAmountSlider_);
+    osc3WarpAmountAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc3WarpAmount, osc3WarpAmountSlider_);
 
-    osc1PositionAttachment_ = std::make_unique<SliderAttachment> (
-        apvts, ParamIDs::osc1Position, osc1PositionSlider_);
-    osc2PositionAttachment_ = std::make_unique<SliderAttachment> (
-        apvts, ParamIDs::osc2Position, osc2PositionSlider_);
-    osc3PositionAttachment_ = std::make_unique<SliderAttachment> (
-        apvts, ParamIDs::osc3Position, osc3PositionSlider_);
+    osc1PositionAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc1Position, osc1PositionSlider_);
+    osc2PositionAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc2Position, osc2PositionSlider_);
+    osc3PositionAttachment_ =
+        std::make_unique<SliderAttachment> (apvts, ParamIDs::osc3Position, osc3PositionSlider_);
 
     osc1PanAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ParamIDs::osc1Pan, osc1PanSlider_);
@@ -172,6 +173,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
     addAndMakeVisible (filterHintLabel_);
 
     addAndMakeVisible (filterSourceSwitch_);
+    addAndMakeVisible (filterTypeSwitch_);
     addAndMakeVisible (filterEditor_);
     filterSourceSwitch_.onChange = [this]
     {
@@ -207,11 +209,13 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
 
     keyboard_.setAvailableRange (36, 96); // C2–C7
     keyboard_.setOctaveForMiddleC (4);
+    computerKeyboardOctave_ = 4;
+    keyboard_.setKeyPressBaseOctave (computerKeyboardOctave_); // A = C in this octave; Z/X to shift
     keyboard_.setScrollButtonsVisible (false);
-    keyboard_.setColour (juce::MidiKeyboardComponent::whiteNoteColourId,
-                         juce::Colour (0xff2a3036));
-    keyboard_.setColour (juce::MidiKeyboardComponent::blackNoteColourId,
-                         juce::Colour (0xff141618));
+    keyboard_.setWantsKeyboardFocus (true);
+    keyboard_.setMouseClickGrabsKeyboardFocus (true);
+    keyboard_.setColour (juce::MidiKeyboardComponent::whiteNoteColourId, juce::Colour (0xff2a3036));
+    keyboard_.setColour (juce::MidiKeyboardComponent::blackNoteColourId, juce::Colour (0xff141618));
     keyboard_.setColour (juce::MidiKeyboardComponent::keySeparatorLineColourId,
                          SynthLookAndFeel::panelBorder);
     keyboard_.setColour (juce::MidiKeyboardComponent::mouseOverKeyOverlayColourId,
@@ -222,6 +226,14 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
                          SynthLookAndFeel::textMuted);
     addAndMakeVisible (keyboard_);
 
+    // Computer-keyboard notes only work while MidiKeyboardComponent has focus.
+    // Grab it once the editor is on screen (constructor is too early).
+    juce::MessageManager::callAsync ([safeThis = juce::Component::SafePointer (this)]
+                                     {
+                                         if (safeThis != nullptr)
+                                             safeThis->keyboard_.grabKeyboardFocus();
+                                     });
+
     setSize (980, 880);
     setResizable (true, true);
     setResizeLimits (760, 640, 1600, 1400);
@@ -230,6 +242,37 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (
 WavetableSynthAudioProcessorEditor::~WavetableSynthAudioProcessorEditor()
 { setLookAndFeel (nullptr); }
 
+void WavetableSynthAudioProcessorEditor::visibilityChanged()
+{
+    if (isShowing())
+        keyboard_.grabKeyboardFocus();
+}
+
+void WavetableSynthAudioProcessorEditor::shiftComputerKeyboardOctave (int delta)
+{
+    computerKeyboardOctave_ = juce::jlimit (0, 10, computerKeyboardOctave_ + delta);
+    keyboard_.setKeyPressBaseOctave (computerKeyboardOctave_);
+}
+
+bool WavetableSynthAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
+{
+    const auto c = key.getTextCharacter();
+
+    if (c == 'z' || c == 'Z')
+    {
+        shiftComputerKeyboardOctave (-1);
+        return true;
+    }
+
+    if (c == 'x' || c == 'X')
+    {
+        shiftComputerKeyboardOctave (1);
+        return true;
+    }
+
+    return false;
+}
+
 void WavetableSynthAudioProcessorEditor::setupRotary (juce::Slider& slider, juce::Label& label,
                                                       const juce::String& name,
                                                       const juce::String& unitSuffix)
@@ -237,8 +280,7 @@ void WavetableSynthAudioProcessorEditor::setupRotary (juce::Slider& slider, juce
     slider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     const int textW = unitSuffix.isEmpty() ? 64 : 72;
     slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, textW, kTextBoxH);
-    if (unitSuffix.isNotEmpty())
-        slider.setTextValueSuffix (unitSuffix);
+    if (unitSuffix.isNotEmpty()) slider.setTextValueSuffix (unitSuffix);
     addAndMakeVisible (slider);
 
     label.setText (name, juce::dontSendNotification);
@@ -265,8 +307,9 @@ void WavetableSynthAudioProcessorEditor::refreshAllPositionEnabled()
     updatePositionEnabled (osc3WaveKnob_.getSlider(), osc3PositionSlider_, osc3PositionLabel_);
 }
 
-void WavetableSynthAudioProcessorEditor::updateWarpAmountEnabled (
-    WarpModeSwitch& warpSwitch, juce::Slider& warpAmountSlider, juce::Label& warpAmountLabel)
+void WavetableSynthAudioProcessorEditor::updateWarpAmountEnabled (WarpModeSwitch& warpSwitch,
+                                                                  juce::Slider& warpAmountSlider,
+                                                                  juce::Label& warpAmountLabel)
 {
     // WarpMode::off ignores amount (see warpPhase).
     const bool active = warpSwitch.getSelectedIndex() != 0;
@@ -337,13 +380,14 @@ void WavetableSynthAudioProcessorEditor::attachFilterSource (int sourceIndex)
 {
     struct Ids
     {
+        const char* type;
         const char* cutoff;
         const char* resonance;
     };
 
     static constexpr Ids kIds[] = {
-        {ParamIDs::cutoff, ParamIDs::resonance},
-        {ParamIDs::noiseCutoff, ParamIDs::noiseResonance},
+        {ParamIDs::filterType, ParamIDs::cutoff, ParamIDs::resonance},
+        {ParamIDs::noiseFilterType, ParamIDs::noiseCutoff, ParamIDs::noiseResonance},
     };
 
     const auto& ids = kIds[juce::jlimit (0, 1, sourceIndex)];
@@ -352,7 +396,8 @@ void WavetableSynthAudioProcessorEditor::attachFilterSource (int sourceIndex)
     cutoffAttachment_.reset();
     resonanceAttachment_.reset();
 
-    filterEditor_.attach (apvts, ids.cutoff, ids.resonance);
+    filterTypeSwitch_.attach (apvts, ids.type);
+    filterEditor_.attach (apvts, ids.cutoff, ids.resonance, ids.type);
     cutoffAttachment_ = std::make_unique<SliderAttachment> (apvts, ids.cutoff, cutoffSlider_);
     resonanceAttachment_ =
         std::make_unique<SliderAttachment> (apvts, ids.resonance, resonanceSlider_);
@@ -360,8 +405,8 @@ void WavetableSynthAudioProcessorEditor::attachFilterSource (int sourceIndex)
 
 void WavetableSynthAudioProcessorEditor::updateFilterHint (int sourceIndex)
 {
-    filterHintLabel_.setText (sourceIndex == 0 ? "Shared low-pass on Osc 1 + 2 + 3 mix"
-                                               : "Low-pass on noise only",
+    filterHintLabel_.setText (sourceIndex == 0 ? "Shared filter on Osc 1 + 2 + 3 mix"
+                                               : "Filter on noise only",
                               juce::dontSendNotification);
 }
 
@@ -370,9 +415,8 @@ void WavetableSynthAudioProcessorEditor::layoutKnobColumn (juce::Rectangle<int> 
                                                            int fixedSide)
 {
     label.setBounds (column.removeFromTop (kLabelH));
-    const int side = fixedSide > 0
-                         ? juce::jmin (fixedSide, column.getWidth(), column.getHeight())
-                         : juce::jmin (column.getWidth(), column.getHeight());
+    const int side = fixedSide > 0 ? juce::jmin (fixedSide, column.getWidth(), column.getHeight())
+                                   : juce::jmin (column.getWidth(), column.getHeight());
     slider.setBounds (column.withSizeKeepingCentre (side, side).reduced (2));
 }
 
@@ -415,8 +459,8 @@ void WavetableSynthAudioProcessorEditor::layoutOscPanel (
 
     const int topW = topArea.getWidth() / kTopCols;
     const int botW = bottomRow.getWidth() / kBotCols;
-    const int knobSide = juce::jmin (topW, botW, topArea.getHeight() - kLabelH,
-                                     bottomRow.getHeight() - kLabelH);
+    const int knobSide =
+        juce::jmin (topW, botW, topArea.getHeight() - kLabelH, bottomRow.getHeight() - kLabelH);
 
     layoutKnobColumn (topArea.removeFromLeft (topW), level, levelLabel, knobSide);
     auto detuneCol = topArea.removeFromLeft (topW);
@@ -464,21 +508,19 @@ void WavetableSynthAudioProcessorEditor::refreshSourcePanelDims()
                           &osc1UnisonCountLabel_, &osc1UnisonDetuneLabel_, &osc1WarpAmountLabel_,
                           &osc1PositionLabel_, &osc1PanLabel_});
 
-    setComponentsDimmed (! osc2EnableLed_.isSourceOn(),
-                         {&osc2Waveform_, &osc2LevelSlider_, &osc2LevelLabel_, &osc2DetuneSlider_,
-                          &osc2DetuneLabel_, &osc2WaveKnob_, &osc2WarpSwitch_,
-                          &osc2UnisonCountSlider_, &osc2UnisonDetuneSlider_, &osc2WarpAmountSlider_,
-                          &osc2PositionSlider_, &osc2PanSlider_, &osc2UnisonCountLabel_,
-                          &osc2UnisonDetuneLabel_, &osc2WarpAmountLabel_, &osc2PositionLabel_,
-                          &osc2PanLabel_});
+    setComponentsDimmed (
+        ! osc2EnableLed_.isSourceOn(),
+        {&osc2Waveform_, &osc2LevelSlider_, &osc2LevelLabel_, &osc2DetuneSlider_, &osc2DetuneLabel_,
+         &osc2WaveKnob_, &osc2WarpSwitch_, &osc2UnisonCountSlider_, &osc2UnisonDetuneSlider_,
+         &osc2WarpAmountSlider_, &osc2PositionSlider_, &osc2PanSlider_, &osc2UnisonCountLabel_,
+         &osc2UnisonDetuneLabel_, &osc2WarpAmountLabel_, &osc2PositionLabel_, &osc2PanLabel_});
 
-    setComponentsDimmed (! osc3EnableLed_.isSourceOn(),
-                         {&osc3Waveform_, &osc3LevelSlider_, &osc3LevelLabel_, &osc3DetuneSlider_,
-                          &osc3DetuneLabel_, &osc3WaveKnob_, &osc3WarpSwitch_,
-                          &osc3UnisonCountSlider_, &osc3UnisonDetuneSlider_, &osc3WarpAmountSlider_,
-                          &osc3PositionSlider_, &osc3PanSlider_, &osc3UnisonCountLabel_,
-                          &osc3UnisonDetuneLabel_, &osc3WarpAmountLabel_, &osc3PositionLabel_,
-                          &osc3PanLabel_});
+    setComponentsDimmed (
+        ! osc3EnableLed_.isSourceOn(),
+        {&osc3Waveform_, &osc3LevelSlider_, &osc3LevelLabel_, &osc3DetuneSlider_, &osc3DetuneLabel_,
+         &osc3WaveKnob_, &osc3WarpSwitch_, &osc3UnisonCountSlider_, &osc3UnisonDetuneSlider_,
+         &osc3WarpAmountSlider_, &osc3PositionSlider_, &osc3PanSlider_, &osc3UnisonCountLabel_,
+         &osc3UnisonDetuneLabel_, &osc3WarpAmountLabel_, &osc3PositionLabel_, &osc3PanLabel_});
 
     setComponentsDimmed (! noiseEnableLed_.isSourceOn(),
                          {&noiseTypeSwitch_, &noiseLevelSlider_, &noisePanSlider_,
@@ -493,9 +535,8 @@ void layoutSectionLed (juce::Rectangle<int> sectionBounds, SourceEnableLed& led)
 {
     auto titleRow = sectionBounds.removeFromTop (kSectionTitleH).reduced (10, 0);
     constexpr int kLed = 14;
-    led.setBounds (titleRow.removeFromRight (kLed + 4)
-                       .withSizeKeepingCentre (kLed, kLed)
-                       .translated (0, 2));
+    led.setBounds (
+        titleRow.removeFromRight (kLed + 4).withSizeKeepingCentre (kLed, kLed).translated (0, 2));
 }
 } // namespace
 
@@ -524,15 +565,19 @@ void WavetableSynthAudioProcessorEditor::resized()
 
     const float totalW = keyboard_.getTotalKeyboardWidth();
     if (totalW > 1.0f)
-        keyboard_.setKeyWidth (keyboard_.getKeyWidth() * static_cast<float> (keyboardArea.getWidth())
-                               / totalW);
+        keyboard_.setKeyWidth (keyboard_.getKeyWidth() *
+                               static_cast<float> (keyboardArea.getWidth()) / totalW);
 
     auto bounds = full.reduced (kPad);
     bounds.removeFromBottom (12);
 
     auto header = bounds.removeFromTop (kHeaderH);
     constexpr int kCpuW = 140;
+    constexpr int kVoiceModeW = 200;
     cpuMeter_.setBounds (header.removeFromRight (kCpuW).reduced (0, 2));
+    header.removeFromRight (8);
+    voiceModeSwitch_.setBounds (header.removeFromRight (kVoiceModeW)
+                                    .withSizeKeepingCentre (kVoiceModeW, kSwitchH));
     header.removeFromRight (10);
     titleLabel_.setBounds (header);
 
@@ -600,6 +645,10 @@ void WavetableSynthAudioProcessorEditor::resized()
         auto sourceRow = inner.removeFromTop (kSwitchH + 2);
         const int sourceW = juce::jmin (sourceRow.getWidth() - 4, 200);
         filterSourceSwitch_.setBounds (sourceRow.withSizeKeepingCentre (sourceW, kSwitchH));
+
+        auto typeRow = inner.removeFromTop (kSwitchH + 2);
+        const int typeW = juce::jmin (typeRow.getWidth() - 4, 160);
+        filterTypeSwitch_.setBounds (typeRow.withSizeKeepingCentre (typeW, kSwitchH));
 
         constexpr int kHintH = 16;
         filterHintLabel_.setBounds (inner.removeFromTop (kHintH));

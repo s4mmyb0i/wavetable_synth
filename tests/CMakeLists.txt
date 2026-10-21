@@ -25,7 +25,7 @@ add_executable(WavetableTests
     ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableMipBank.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/WavetableOsc.cpp
     ${CMAKE_SOURCE_DIR}/Source/dsp/Envelope.cpp
-    ${CMAKE_SOURCE_DIR}/Source/dsp/Filter.cpp)
+    ${CMAKE_SOURCE_DIR}/Source/dsp/filter/Filter.cpp)
 
 target_include_directories(WavetableTests PRIVATE ${CMAKE_SOURCE_DIR}/Source)
 

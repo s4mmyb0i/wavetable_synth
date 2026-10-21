@@ -218,6 +218,13 @@ void SynthVoice::stopNote (float velocity, bool allowTailOff)
 void SynthVoice::pitchWheelMoved (int) {}
 void SynthVoice::controllerMoved (int, int) {}
 
+void SynthVoice::legatoToNote (int midiNoteNumber)
+{
+    // Pitch only. Do not touch JUCE's currentlyPlayingNote (private; friend=Synthesiser only).
+    noteFrequencyHz_ = static_cast<float> (juce::MidiMessage::getMidiNoteInHertz (midiNoteNumber));
+    applyOscFrequencies();
+}
+
 void SynthVoice::setCurrentPlaybackSampleRate (double newRate)
 {
     juce::SynthesiserVoice::setCurrentPlaybackSampleRate (newRate);
