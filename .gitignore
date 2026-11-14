@@ -1,5 +1,7 @@
 build/
 build-release/
+build-release-universal/
+dist/
 cmake-build*/
 .DS_Store
 .idea/
